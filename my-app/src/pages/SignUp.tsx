@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Formik,Form,Field,ErrorMessage } from "formik";
 import * as Yup from 'yup'
 import { TextField,Button,Box,Typography } from "@mui/material";
 import "../css/SignUp.css"
+import {createUserWithEmailAndPassword,sendEmailVerification} from 'firebase/auth'
+import { auth, db } from "../services/firebase";
+//import { getDocs, collection } from "firebase/firestore";
+import { useNavigate } from "react-router";
 
-import {createUserWithEmailAndPassword} from 'firebase/auth'
-import { auth } from "../services/firebase";
 
 interface SignUpValues{
     name: string;
@@ -35,15 +37,28 @@ const SignUp: React.FC=()=>{
             const user = userCredential.user;
             console.log('User signed up:',{uid:user.uid,email:user.email,name:values.name});
             console.log(user);
+            await sendEmailVerification(user);
+            console.log('Verification email sent');
             alert('Sign-up successful! Check your email for verification');
             setSubmitting(false);
+            const navigate = useNavigate();
+
+            useEffect(()=>{
+                navigate('/login');
+            },[navigate]);
 
         }catch (error){
             //alert("sign-up failed" + error.message)
             setSubmitting(false);
         }
 
+        
+        //clear values after you have signed up a user
+
+
     }
+
+
 
     return(
     <Box sx={{

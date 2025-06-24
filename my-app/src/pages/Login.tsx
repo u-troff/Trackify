@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Formik,Form,Field,ErrorMessage } from "formik";
 import * as Yup from 'yup'
 import { TextField,Button,Box,Typography,Alert } from "@mui/material";
@@ -27,9 +27,29 @@ const Login: React.FC=()=>{
         password: Yup.string().required('Password is required').min(8,'Password must be atleast 8 characters long'),
     });
     const navigate = useNavigate();
+    const [loginError,setLoginError] = useState<string |null>(null);
+
+
 
 
     const handleSubmit= async (values: LoginValues,{setSubmitting}:{setSubmitting:(isSubmitting:boolean)=>void})=>{
+    setLoginError(null);
+
+    try{
+        const userCredential = await signInWithEmailAndPassword(auth,values.email,values.password);
+        const user = userCredential.user;
+        if(user && user.uid){
+            console.log("Login successful:" ,{uid: user.uid,email: user.email })
+            setTimeout(()=>{
+                navigate('/dashboard');
+            },1000);
+        }
+    }catch (error){
+        console.log('Login error');
+        setLoginError("Invalid email or password");
+    }finally{
+        setSubmitting(false);
+    }
         
         
 
@@ -95,7 +115,7 @@ const Login: React.FC=()=>{
                             }}
                             disabled={isSubmitting}>
                                 {
-                                    isSubmitting?'Submitting...':'Sign Up'
+                                    isSubmitting?'Submitting...':'Login'
                                 }
                             </Button>
                             </Box>
