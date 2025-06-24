@@ -1,19 +1,28 @@
 
-import {Button,Typography,Container} from '@mui/material';
+//import {Button,Typography,Container} from '@mui/material';
 import './App.css'
 import React from 'react'
-import { Formik, Field, Form } from 'formik';
-import type {FormikHelpers} from 'formik'
-import {createBrowserRouter} from "react-router"
+//import API from "./services/firebase"
+import SignUp from './pages/SignUp'
+import { Route,Routes } from 'react-router-dom'
+import Login from "./pages/Login"
+import Redirect from './Redirect'
+//import type {FormikHelpers} from 'formik'
+//import {createBrowserRouter} from "react-router"
 
 
 const App: React.FC = ()=> {
-    const apiurl = import.meta.env.BASE_URL;
+    //const apiurl = import.meta.env;
+    
       
       return (
-        <>
-        <h1> </h1>{console.log(apiurl)}
-        </>
+        <Routes>
+            <Route path='/' element={<Redirect/>}/>
+            <Route path='/login' element={<Login/>}/>
+            <Route path='/sign-up' element={<SignUp/>}/>
+        </Routes>
+          
+        
   );
     
 }
