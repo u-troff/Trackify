@@ -9,16 +9,17 @@ import Login from "./pages/Login"
 import Dashboard from './pages/Dashboard'
 //import type {FormikHelpers} from 'formik'
 //import {createBrowserRouter} from "react-router"
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider,useAuth } from './context/AuthContext'
 import { ProtectedRoute } from './Redirect'
+import { Spinner } from './Spinner/Spinner'
+
 
 
 const App: React.FC = ()=> {
-    //const apiurl = import.meta.env;
-    
       
       return (
         <AuthProvider>
+          
         <Routes>
             <Route path='/' element={<Login/>}/>
               <Route path='/login' element={<Login/>}/>

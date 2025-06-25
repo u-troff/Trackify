@@ -7,6 +7,9 @@ import { auth, db } from "../services/firebase";
 //import { getDocs, collection } from "firebase/firestore";
 import { useNavigate } from "react-router";
 import { NavBar } from "../Redirect";
+import { Spinner } from "../Spinner/Spinner";
+import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
 
 
 interface SignUpValues{
@@ -23,6 +26,8 @@ const SignUp: React.FC=()=>{
         password:'',
     }
     const navigate = useNavigate();
+    
+    const [isSigningUp,setIsSigningUp] = useState(false);
     //Validation schema used is YUP
     //fix the schema for password error display
     const validationSchema = Yup.object({
@@ -31,6 +36,7 @@ const SignUp: React.FC=()=>{
         password: Yup.string().required('Password is required').min(8,'Password must be atleast 8 characters long'),
     });
     const handleSubmit= async (values: SignUpValues,{setSubmitting}:{setSubmitting:(isSubmitting:boolean)=>void})=>{
+        setIsSigningUp(true);
         console.log("awe")
         try{
         console.log('testing')
@@ -54,6 +60,10 @@ const SignUp: React.FC=()=>{
         //clear values after you have signed up a user
 
 
+    }
+
+    if(isSigningUp){
+        return(<Spinner/>)
     }
 
 
