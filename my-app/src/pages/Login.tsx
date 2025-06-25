@@ -1,27 +1,65 @@
-import React, { useState } from "react";
-import { Formik,Form,Field,ErrorMessage } from "formik";
+import React, { useEffect, useState } from "react";
+import { Formik,Form,Field,ErrorMessage,useFormikContext } from "formik";
 import * as Yup from 'yup'
-import { TextField,Button,Box,Typography,Alert } from "@mui/material";
+import { TextField,Button,Box,Typography ,Link} from "@mui/material";
 import "../css/Login.css"
 
-import {signInWithEmailAndPassword} from 'firebase/auth'
+import {signInWithEmailAndPassword,sendPasswordResetEmail} from 'firebase/auth'
 import { auth } from "../services/firebase";
-import { useNavigate } from "react-router";
+import { useNavigate,Navigate } from "react-router-dom";
+import { NavBar } from "../Redirect";
+import { Bounce, ToastContainer,toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 interface LoginValues{
     email: string;
     password: string;
 }
 
+const ForgotPasswordLink: React.FC=()=>{
+    const {values} = useFormikContext<LoginValues>();
+
+    const forgotPassword = async ()=>{
+        if(!values.email){
+            toast.error('Please enter your email address',{position: "top-center",autoClose: 3000, theme: "light", transition: Bounce});
+        
+            return;   
+        }
+        try{
+            await sendPasswordResetEmail(auth,values.email);
+            toast.success(`Password Reset link sent to ${values.email}`,{
+                position: "top-center",
+                autoClose: 3000,
+                transition: Bounce,
+            })
+        }catch (error:any){
+            console.error(error);
+            toast.error('Error Occurred!');
+        }
+    
+    }
+
+    return(
+    <Link onClick={forgotPassword} color="inherit" sx={{cursor: "pointer", '&:hover':{
+        color: 'primary.main',
+        transform: 'scale(1.10)',
+
+    }}}>
+        Forgot Password
+    </Link>);
+}
+
+
 
 const Login: React.FC=()=>{
+    const {currentUser,loading} = useAuth();
     const instialValues : LoginValues = {
         email:'',
         password:'',
     }
 
     //Validation schema used is YUP
-    //fix the schema for password error display
+
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email address').required('Email is required'),
         password: Yup.string().required('Password is required').min(8,'Password must be atleast 8 characters long'),
@@ -30,7 +68,9 @@ const Login: React.FC=()=>{
     const [loginError,setLoginError] = useState<string |null>(null);
 
 
-
+    if(!loading && currentUser){
+        return<Navigate to="/dashboard"/>
+    }
 
     const handleSubmit= async (values: LoginValues,{setSubmitting}:{setSubmitting:(isSubmitting:boolean)=>void})=>{
     setLoginError(null);
@@ -43,6 +83,7 @@ const Login: React.FC=()=>{
             setTimeout(()=>{
                 navigate('/dashboard');
             },1000);
+            setLoginError(null);
         }
     }catch (error){
         console.log('Login error');
@@ -50,24 +91,36 @@ const Login: React.FC=()=>{
     }finally{
         setSubmitting(false);
     }
-        
-        
-
     }
 
-    return(
+
+    
+
+    return(<>
+        <NavBar/>
     <Box sx={{
         maxWidth:400,
+        display: "flex",
+        flexDirection: "column",
         boxShadow: 2,
-        p: 3,
-        margin: 0,
-        border: '1px solid #ccc',
-        borderRadius: 2,
+        justifyContent: "center",
+        alignItems: "center",
         mt: 4,
         mx:'auto',
         my: 'auto',
         
     }} className=".style" >
+        <Box sx={{
+            maxWidth: 400,
+            width: '100%',
+            boxShadow: 3,
+            p: 3,
+            border: '1px solid #ccc',
+            borderRadius: 2,
+            backgroundColor: 'white',
+        }}>
+
+        
             <Typography sx={{
                 textAlign: "center",
             }} gutterBottom variant="h5" component="h1">
@@ -100,7 +153,10 @@ const Login: React.FC=()=>{
                                  
                                  />
                                 <Box >
-                                    <p>forgot Password</p>
+                                    {loginError&&<Typography color="error">
+                                        {loginError}</Typography>}
+                                    <ForgotPasswordLink/>
+
                                 </Box>
                             </Box>
                             
@@ -128,9 +184,11 @@ const Login: React.FC=()=>{
 
             </Formik>
 
-        
+        <ToastContainer/>
+        </Box>
     </Box>
     
+    </>
     );
 }
 

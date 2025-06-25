@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import { Formik,Form,Field,ErrorMessage } from "formik";
 import * as Yup from 'yup'
 import { TextField,Button,Box,Typography } from "@mui/material";
@@ -7,6 +6,7 @@ import {createUserWithEmailAndPassword,sendEmailVerification} from 'firebase/aut
 import { auth, db } from "../services/firebase";
 //import { getDocs, collection } from "firebase/firestore";
 import { useNavigate } from "react-router";
+import { NavBar } from "../Redirect";
 
 
 interface SignUpValues{
@@ -22,6 +22,7 @@ const SignUp: React.FC=()=>{
         email:'',
         password:'',
     }
+    const navigate = useNavigate();
     //Validation schema used is YUP
     //fix the schema for password error display
     const validationSchema = Yup.object({
@@ -39,19 +40,16 @@ const SignUp: React.FC=()=>{
             console.log(user);
             await sendEmailVerification(user);
             console.log('Verification email sent');
-            alert('Sign-up successful! Check your email for verification');
+            //alert('Sign-up successful! Check your email for verification');
             setSubmitting(false);
-            const navigate = useNavigate();
-
-            useEffect(()=>{
-                navigate('/login');
-            },[navigate]);
-
+            setTimeout(
+                ()=>{
+                    navigate('/dashboard');
+                },1000);
         }catch (error){
             //alert("sign-up failed" + error.message)
             setSubmitting(false);
         }
-
         
         //clear values after you have signed up a user
 
@@ -60,7 +58,8 @@ const SignUp: React.FC=()=>{
 
 
 
-    return(
+    return(<>
+        <NavBar/>
     <Box sx={{
         maxWidth:400,
         boxShadow: 2,
@@ -145,7 +144,7 @@ const SignUp: React.FC=()=>{
         
     </Box>
     
-    );
+    </>);
 }
 
 

@@ -6,10 +6,11 @@ import React from 'react'
 import SignUp from './pages/SignUp'
 import { Route,Routes } from 'react-router-dom'
 import Login from "./pages/Login"
-import Redirect from './Redirect'
 import Dashboard from './pages/Dashboard'
 //import type {FormikHelpers} from 'formik'
 //import {createBrowserRouter} from "react-router"
+import { AuthProvider } from './context/AuthContext'
+import { ProtectedRoute } from './Redirect'
 
 
 const App: React.FC = ()=> {
@@ -17,12 +18,17 @@ const App: React.FC = ()=> {
     
       
       return (
+        <AuthProvider>
         <Routes>
-            <Route path='/' element={<Redirect/>}/>
-            <Route path='/login' element={<Login/>}/>
-            <Route path='/sign-up' element={<SignUp/>}/>
-            <Route path ='/dashboard' element={<Dashboard/>}/>
+            <Route path='/' element={<Login/>}/>
+              <Route path='/login' element={<Login/>}/>
+              <Route path='/sign-up' element={<SignUp/>}/>
+              <Route element={<ProtectedRoute/>}>
+                <Route path ='/dashboard' element={<Dashboard/>}/>
+              </Route>
+            
         </Routes>
+        </AuthProvider>
           
         
   );
