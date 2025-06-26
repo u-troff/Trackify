@@ -10,6 +10,7 @@ import { useNavigate,Navigate } from "react-router-dom";
 import { NavBar } from "../Redirect";
 import { Bounce, ToastContainer,toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import { Spinner } from "../Spinner/Spinner";
 
 interface LoginValues{
     email: string;
@@ -52,7 +53,10 @@ const ForgotPasswordLink: React.FC=()=>{
 
 
 const Login: React.FC=()=>{
-    const {currentUser,loading} = useAuth();
+    const {currentUser,loading} = useAuth();//use to check if used is already authenticated
+    const navigate = useNavigate();
+    const [loginError,setLoginError] = useState<string |null>(null);
+    const [isLoggingIn,setisLoggingIn] = useState<boolean>(false);
     const instialValues : LoginValues = {
         email:'',
         password:'',
@@ -64,16 +68,18 @@ const Login: React.FC=()=>{
         email: Yup.string().email('Invalid email address').required('Email is required'),
         password: Yup.string().required('Password is required').min(8,'Password must be atleast 8 characters long'),
     });
-    const navigate = useNavigate();
-    const [loginError,setLoginError] = useState<string |null>(null);
+    
 
-
+    //Navigate Already Authenticated used to the login page
     if(!loading && currentUser){
         return<Navigate to="/dashboard"/>
     }
 
+
+
     const handleSubmit= async (values: LoginValues,{setSubmitting}:{setSubmitting:(isSubmitting:boolean)=>void})=>{
     setLoginError(null);
+    setisLoggingIn(true);
 
     try{
         const userCredential = await signInWithEmailAndPassword(auth,values.email,values.password);
@@ -93,23 +99,18 @@ const Login: React.FC=()=>{
     }
     }
 
+    if(isLoggingIn||loading){
+        return(<>
+        <Spinner/>
+        </>);
+    }
+
 
     
 
     return(<>
         <NavBar/>
-    <Box sx={{
-        maxWidth:400,
-        display: "flex",
-        flexDirection: "column",
-        boxShadow: 2,
-        justifyContent: "center",
-        alignItems: "center",
-        mt: 4,
-        mx:'auto',
-        my: 'auto',
-        
-    }} className=".style" >
+    
         <Box sx={{
             maxWidth: 400,
             width: '100%',
@@ -118,6 +119,12 @@ const Login: React.FC=()=>{
             border: '1px solid #ccc',
             borderRadius: 2,
             backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent:'center',
+            mx:'auto',
+
         }}>
 
         
@@ -186,7 +193,6 @@ const Login: React.FC=()=>{
 
         <ToastContainer/>
         </Box>
-    </Box>
     
     </>
     );
