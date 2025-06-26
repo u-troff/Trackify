@@ -11,7 +11,6 @@ import Dashboard from './pages/Dashboard'
 //import {createBrowserRouter} from "react-router"
 import { AuthProvider,useAuth } from './context/AuthContext'
 import { ProtectedRoute } from './Redirect'
-import { Spinner } from './Spinner/Spinner'
 
 
 

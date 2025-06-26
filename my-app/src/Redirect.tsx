@@ -68,7 +68,21 @@ function NavBar(){
    </>);
 }
 
+const NavBarInMainPage:React.FC=()=>{
+    return(
+        <div style={{ display: "flex" }}>
+              {/* AppBar */}
+              <AppBar position="fixed" sx={{ zIndex: 1201 }}>
+                <Toolbar>
+                  <Typography variant="h6" noWrap>
+                    Trackify
+                  </Typography>
+                </Toolbar>
+              </AppBar>
+        </div>
+    );
+}
 
 
 
-export {Redirect,NavBar,ProtectedRoute}
+export {Redirect,NavBar,ProtectedRoute,NavBarInMainPage}

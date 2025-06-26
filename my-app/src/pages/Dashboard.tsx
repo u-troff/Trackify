@@ -1,15 +1,26 @@
 import React from "react"
-import { NavBar } from "../Redirect";
-import { Spinner } from "../Spinner/Spinner";
+
+import {Link} from 'react-router-dom'
+import { AppBar,Toolbar,Typography} from "@mui/material";
+import Sidebar from "./SideBar";
+import { NavBarInMainPage } from "../Redirect";
+import { Navigate } from "react-router-dom";
 
 
-const Dashboard: React.FC=()=>{
-    return(<div>
-        <NavBar/>
-        <h1>Hello world</h1>
+
+
+const DashBoard: React.FC=()=>{
+    
+    return(
+      <>
+        <NavBarInMainPage/>
+        <Sidebar/>
         
-    </div>);
+        
+      </>
+      
+    );
 }
 
 
-export default Dashboard
+export default DashBoard;
