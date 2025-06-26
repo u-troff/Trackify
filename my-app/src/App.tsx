@@ -11,7 +11,8 @@ import Dashboard from './pages/Dashboard'
 //import {createBrowserRouter} from "react-router"
 import { AuthProvider,useAuth } from './context/AuthContext'
 import { ProtectedRoute } from './Redirect'
-
+import TimeTracking from './pages/TimeTracking'
+import Reports from './pages/Reports'
 
 
 const App: React.FC = ()=> {
@@ -25,6 +26,9 @@ const App: React.FC = ()=> {
               <Route path='/sign-up' element={<SignUp/>}/>
               <Route element={<ProtectedRoute/>}>
                 <Route path ='/dashboard' element={<Dashboard/>}/>
+                <Route path ='/time-tracking' element={<TimeTracking/>}/>
+                <Route path ='/reports' element={<Reports/>}/>
+                
               </Route>
             
         </Routes>
