@@ -10,6 +10,7 @@ import { NavBar } from "../Redirect";
 import { Spinner } from "../Spinner/Spinner";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
+import { POST } from "../services/ApiCalls";
 
 
 interface SignUpValues{
@@ -37,7 +38,9 @@ const SignUp: React.FC=()=>{
     });
     const handleSubmit= async (values: SignUpValues,{setSubmitting}:{setSubmitting:(isSubmitting:boolean)=>void})=>{
         setIsSigningUp(true);
-        console.log("awe")
+        console.log("awe");
+        
+        
         try{
         console.log('testing')
             const userCredential = await createUserWithEmailAndPassword(auth,values.email,values.password);
@@ -45,7 +48,7 @@ const SignUp: React.FC=()=>{
             console.log('User signed up:',{uid:user.uid,email:user.email,name:values.name});
             console.log(user);
             await sendEmailVerification(user);
-            console.log('Verification email sent');
+            POST(user.uid,values.name,user.email);
             //alert('Sign-up successful! Check your email for verification');
             setSubmitting(false);
             setTimeout(
@@ -54,7 +57,9 @@ const SignUp: React.FC=()=>{
                 },1000);
         }catch (error){
             //alert("sign-up failed" + error.message)
+            console.log("error");
             setSubmitting(false);
+            setIsSigningUp(false);
         }
         
         //clear values after you have signed up a user
