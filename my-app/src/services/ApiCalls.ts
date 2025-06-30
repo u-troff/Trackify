@@ -1,6 +1,5 @@
 import {auth} from "./firebase"
 import axios from 'axios'
-import { useAuth } from "../context/AuthContext"
 
 
 const api_url = import.meta.env.VITE_BASE_API_URL;
@@ -11,6 +10,8 @@ const api = axios.create({
         'Media-Type': 'application/json',
     }
 })
+
+//add this as a function and call it in each request so that it gets the latests token each time.
 api.interceptors.request.use(async (config)=>{
     if(auth){
         const user = auth.currentUser;
@@ -55,7 +56,7 @@ const POST= async (userId:string,name:string|null,email:string| null)=>{
 }
 
 const GetSpecificUsers = async (userId:string)=>{
-    const path:string = `users/{${userId}}`
+    const path:string = `users/${userId}`
     try{
         const response = await api.get(path);
         console.log("User",response.data,"Status",response.status);
@@ -65,5 +66,34 @@ const GetSpecificUsers = async (userId:string)=>{
 
 }
 
+const PostProjects = async(userId:string,name:string,description:string)=>{
+    const path:string = `projects`
 
-export {getUsers,POST,GetSpecificUsers}
+    try{
+        const response = await api.post(path,{
+            "name": name,
+            "userId": userId,
+            "description": description
+        });
+        console.log(response.data);
+        return response.data;
+    }catch (err){
+        console.log(err);
+    }
+}
+
+
+const GetProjects = async (userId:string)=>{
+    const path:string = `projects/user/${userId}`
+
+    try{
+        const response = await api.get(path);
+        console.log("User",response.data,"Status",response.status);
+        return response;
+    }catch (err){
+        console.log(err);
+    }
+}
+
+
+export {getUsers,POST,GetSpecificUsers,PostProjects,GetProjects}
