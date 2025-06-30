@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Formik,Form,Field,ErrorMessage,useFormikContext } from "formik";
 import * as Yup from 'yup'
 import { TextField,Button,Box,Typography ,Link} from "@mui/material";
@@ -11,6 +11,8 @@ import { NavBar } from "../Redirect";
 import { Bounce, ToastContainer,toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { Spinner } from "../Spinner/Spinner";
+import { getUsers,GetSpecificUsers } from "../services/ApiCalls";
+
 
 interface LoginValues{
     email: string;
@@ -61,7 +63,7 @@ const Login: React.FC=()=>{
         email:'',
         password:'',
     }
-
+    
     //Validation schema used is YUP
 
     const validationSchema = Yup.object({
@@ -80,22 +82,25 @@ const Login: React.FC=()=>{
     const handleSubmit= async (values: LoginValues,{setSubmitting}:{setSubmitting:(isSubmitting:boolean)=>void})=>{
     setLoginError(null);
     setisLoggingIn(true);
-
     try{
         const userCredential = await signInWithEmailAndPassword(auth,values.email,values.password);
         const user = userCredential.user;
         if(user && user.uid){
             console.log("Login successful:" ,{uid: user.uid,email: user.email })
+            console.log("uid", user.uid);
             setTimeout(()=>{
                 navigate('/dashboard');
             },1000);
             setLoginError(null);
+            //getUsers();
+            GetSpecificUsers(user.uid);
         }
     }catch (error){
-        console.log('Login error');
+        console.log('Login error',error);
         setLoginError("Invalid email or password");
-    }finally{
         setSubmitting(false);
+        setisLoggingIn(false);
+        navigate('/');
     }
     }
 

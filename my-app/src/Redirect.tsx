@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppBar,Link,Toolbar,Typography,Button } from "@mui/material";
+import { AppBar,Link,Toolbar,Typography,Button,Box } from "@mui/material";
 import {Link as Routelinker} from 'react-router-dom'
 import { Outlet,Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
@@ -48,16 +48,17 @@ function NavBar(){
 
 const NavBarInMainPage:React.FC=()=>{
     return(
-        <div style={{ display: "flex" }}>
-              {/* AppBar */}
-              <AppBar position="fixed" sx={{ zIndex: 1201 }}>
+        <Box display='flex'>
+            <AppBar position="fixed" sx={{ zIndex: 1201 }}>
                 <Toolbar>
                   <Typography variant="h6" noWrap>
                     Trackify
                   </Typography>
                 </Toolbar>
               </AppBar>
-        </div>
+        </Box>
+              
+        
     );
 }
 
