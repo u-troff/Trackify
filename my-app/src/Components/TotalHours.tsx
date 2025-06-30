@@ -1,5 +1,6 @@
 import React from "react"
-import { Card,CardContent,Typography,Box } from "@mui/material";
+import { Card,CardContent,Typography,Box, IconButton } from "@mui/material";
+import TimerIcon from '@mui/icons-material/Timer';
 
 
 
@@ -8,10 +9,27 @@ import { Card,CardContent,Typography,Box } from "@mui/material";
 const TotalHours:React.FC=()=>{
 
     return(
-        <Card sx={{ maxWidth: 300, bgcolor: "#f5f5f5", borderRadius: 2, boxShadow: 1,padding:2,height:'auto',width:'auto' }}>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+        <Card sx={{
+          bgcolor: "#f5f5f5",
+          borderRadius: 2,
+          boxShadow: 1,
+          padding: 2,
+          height: "auto",
+          width: "auto", // Grow to fill available space
+          maxWidth: 420, // Respect parent bounds
+          flexGrow: 1, // Grow within parent flex container
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          <Box sx={{display:'flex',justifyContent:'space-between'}}>
+            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 ,fontWeight:'bold'}}>
               Total Hours
             </Typography>
+            <IconButton>
+              <TimerIcon/>
+            </IconButton>
+          </Box>
+            
           <CardContent sx={{ p: 3, textAlign: "center" }}>
             <Typography variant="h3" sx={{ fontWeight: "bold", mb: 2 }}>
               0.0h
