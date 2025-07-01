@@ -19,7 +19,6 @@ const App: React.FC = ()=> {
       
       return (
         <AuthProvider>
-          
         <Routes>
             <Route path='/' element={<Login/>}/>
               <Route path='/login' element={<Login/>}/>

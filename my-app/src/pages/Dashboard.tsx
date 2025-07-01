@@ -9,8 +9,6 @@ import {
 } from "@mui/material";
 
 import TotalHours from "../Components/TotalHours";
-import Sidebar from "./SideBar";
-import { NavBarInMainPage } from "../Redirect";
 import { Statistics } from "../Components/BarChart";
 import WeekToDay from "../Components/WeekToDay";
 import ProgressBars from "../Components/Progress";

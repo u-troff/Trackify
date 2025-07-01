@@ -2,19 +2,19 @@ import React, { useState } from 'react'
 
 import { Dialog,DialogTitle,DialogContent,DialogContentText,TextField,Button,DialogActions ,Card,Box,IconButton, Typography,InputLabel} from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
-import { Spinner } from '../Spinner/Spinner';
-import { PostProjects,GetProjects } from '../services/ApiCalls';
+import { PostProjects } from '../services/ApiCalls';
 import { auth } from '../services/firebase';
 
 interface Props{
     open: boolean;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
+    handleSuccess:any
+
 }
 
 const CreateProject:React.FC<Props>=(Props)=>{
     const [projectName,setProjectName] = useState<string>('');
     const [projectDescription,setProjectDescription] = useState<string>('');
-    const [loading,setLoading]= useState<boolean>(false);
     const userId = auth.currentUser?.uid;
     const API_response = null;
 
@@ -29,8 +29,6 @@ const CreateProject:React.FC<Props>=(Props)=>{
       }
       Props.setOpen(false);
       
-      setLoading(true);
-      //const API_response = GetProjects(userId);
       
       try{
         const API_response = PostProjects(userId,projectName,projectDescription);
@@ -39,15 +37,11 @@ const CreateProject:React.FC<Props>=(Props)=>{
       }catch (err){
         console.log(err);
       }finally{
-        setLoading(false);
+        //setLoading(false);
       }
 
     }
 
-    //  if(API_response){
-    //    return(<Spinner/>);
-    //  }
-     //console.log(API_response);
 
     
     return(<>
@@ -93,10 +87,13 @@ const CreateProject:React.FC<Props>=(Props)=>{
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={()=>Props.setOpen(false)} color="primary" variant='outlined'>
+          <Button onClick={()=>{Props.setOpen(false)
+            
+          }} color="primary" variant='outlined'>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} color="primary" variant='contained'>
+          <Button onClick={handleSubmit
+          } color="primary" variant='contained'>
             Create Project
           </Button>
         </DialogActions>

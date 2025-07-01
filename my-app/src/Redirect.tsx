@@ -18,13 +18,14 @@ import Sidebar from "./pages/SideBar";
 
 const ProtectedRoute: React.FC = () => {
   const { currentUser, loading } = useAuth();
+  const [menu, setMenu] = useState<boolean>(false);
   if (loading) {
     return <Spinner />;
   }
   return currentUser ? (
     <>
-      <NavBarInMainPage />
-      <Sidebar id={1} />
+      <NavBarInMainPage menu={menu} setMenu={setMenu}/>
+      <Sidebar id={1}/>
       <Outlet />
     </>
   ) : (
@@ -58,7 +59,7 @@ function NavBar() {
               flexGrow: 5,
             }}
           >
-            Trackify
+            TU Track
           </Typography>
           <Link
             component={Routelinker}
@@ -83,16 +84,20 @@ function NavBar() {
   );
 }
 
-const NavBarInMainPage: React.FC = () => {
+interface Props {
+  setMenu: React.Dispatch<React.SetStateAction<boolean>>;
+  menu:boolean;
+}
+const NavBarInMainPage: React.FC<Props> = (props) => {
   return (
     <Box display="flex">
       <AppBar position="fixed" sx={{ zIndex: 1201 }}>
         <Toolbar>
-          <IconButton>
+          <IconButton onClick={()=>props.setMenu(!props.menu)}> 
             <MenuOutlinedIcon />
           </IconButton>
           <Typography variant="h6" noWrap>
-            Trackify
+            TU Track
           </Typography>
         </Toolbar>
       </AppBar>

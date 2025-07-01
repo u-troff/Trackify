@@ -11,18 +11,14 @@ import { Navigate } from "react-router-dom";
 
 const Reports: React.FC=()=>{
     
-    return(
+    return (
       <>
-        <NavBarInMainPage/>
-        <Sidebar id={3}/>
-<main style={{ flexGrow: 1, padding: "16px", marginLeft: 200 }}>
-<Toolbar />
-<Typography>
-  This is Reports Page
-</Typography>
-</main>
+        <Sidebar id={3} />
+        <main style={{ flexGrow: 1, padding: "16px", marginLeft: 200 }}>
+          <Toolbar />
+          <Typography>This is Reports Page</Typography>
+        </main>
       </>
-      
     );
 }
 

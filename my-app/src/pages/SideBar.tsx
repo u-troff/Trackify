@@ -15,12 +15,14 @@ import ContrastIcon from '@mui/icons-material/Contrast';
 
 
 const drawerWidth: number = 200;
-interface Props{
-    page?: string;
-    icon?: string;
-    id?:number;
-    route?:string;
-    style?:boolean;
+interface Props {
+  page?: string;
+  icon?: string;
+  id?: number;
+  route?: string;
+  style?: boolean;
+  menu?: boolean;
+  setMenu?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 //dynamic sidebar
 
@@ -31,7 +33,7 @@ const Sidebar:React.FC<Props>=(page)=>{
       , {id:3,label:"Reports", icon: <ShowChartIcon/>,route:"/reports",style:false}
     ];
     //set to open sidebar with a click of a button
-    //const {menu,setMenu} = useMenu();
+    
     
 
     const navigate:NavigateFunction = useNavigate();
@@ -75,7 +77,6 @@ const Sidebar:React.FC<Props>=(page)=>{
     return(<>
 <Drawer
 variant="permanent"
-
 sx={{
   width: drawerWidth,
   flexShrink: 0,
