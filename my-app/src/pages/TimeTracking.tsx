@@ -42,6 +42,7 @@ import dayjs,{Dayjs} from  'dayjs'
 import { useNavigate ,useLocation} from "react-router";
 import queryString from "query-string"
 import { ResponsiveDialog } from "../Components/handleEditAndDelete";
+import EditEntry from "../Components/EditTime"
 export interface TimeEntry{
   id:string;
   date: string;
@@ -93,12 +94,14 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   const [DeleteTimeEntry,setDeleteTimeEntries] = useState<TimeEntry>({});
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [openDeleteDialog,setOpenDeleteDialog] = useState<boolean>(false);
+  const [openEditDialog,setOpenEditDialog] = useState<boolean>(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(()=>{
     const params = queryString.parse(location.search);
     return (params.projectId as string)||"1";
   });
   const [selected, setSelected] = useState<Dayjs | null>(dayjs());
   const [rowSelection, setRowSelection] = useState({});
+  const [currentEdits,setCurrentEdits] = useState<TimeEntry>();
   const userId = auth.currentUser?.uid;
 
   const {
@@ -198,10 +201,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
       setOpenDialog(false);
     },
   });
-  //Edit Entries
-  const editEntry = (timeEntry:TimeEntry)=>{
-      setOpenDialog(true);
-  }
+  
   //Delete Entries
   const handleDelete = (timeEntry: TimeEntry) => {
     setOpenDeleteDialog(true);
@@ -242,7 +242,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
             maxWidth: 100,
           }}
         >
-          <IconButton>
+          <IconButton onClick={()=>OpenEditForm(row.original)}>
             <EditIcon />
           </IconButton>
           <IconButton onClick={() => handleDelete(row.original)}>
@@ -283,6 +283,22 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   }) => {
     mutation.mutate(values);
   };
+
+  const OpenEditForm=(row:TimeEntry)=>{
+    setOpenEditDialog(true);
+    setCurrentEdits(row);
+  }
+  //console.log(currentEdits);
+
+  const handleFormEdit = (values:{
+    project: string;
+    notes: string;
+    hours: number;
+    minutes: number;
+  })=>{
+    setOpenEditDialog(false);
+    console.log("editing",values);
+  }
 
   const handleChange = (event: any) => {
     const newProjectId:string = event.target.value;
@@ -480,6 +496,13 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
             open={openDeleteDialog}
             setOpen={setOpenDeleteDialog}
             Id={DeleteTimeEntry.id}
+          />
+        </Dialog>
+        <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
+          <EditEntry
+            onSubmit={handleFormEdit}
+            onCancel={() => setOpenEditDialog(false)}
+            TimeId={currentEdits}
           />
         </Dialog>
       </Box>
