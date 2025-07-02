@@ -30,7 +30,7 @@ export function Data(projectId?:string,userId:string, loading:boolean) {
     queryKey: ['time-entries/user/',userId],
     queryFn: ()=>GetTimeEntry(userId!),
   })
-  const currentTblData: TimeEntry[]= useMemo(()=>{
+  const currentTblData: [TimeEntry,string][]= useMemo(()=>{
   const projectMap = new Map(projects.map((p)=>[p.ProjectId,p.name]));
 
   const formattedTime:TimeEntry[] = timeEntries.map((entry)=>{
@@ -40,13 +40,13 @@ export function Data(projectId?:string,userId:string, loading:boolean) {
 
     const duration = `${entry.hours}h ${entry.minutes}m`
 
-    return{
+    return [{
       date:formattedDate,
       project:projectName,
       notes:entry.notes,
       duration:duration,
       action:"",
-    }
+    },entry.id]
   
   });
   return formattedTime;
@@ -68,13 +68,13 @@ export function Data(projectId?:string,userId:string, loading:boolean) {
 
     const duration = `${entry.hours}h ${entry.minutes}m`
 
-    return{
+    return[{
       date:formattedDate,
       project:projectName,
       notes:entry.notes,
       duration:duration,
       action:"",
-    }
+    },entry.id]
   
   });
   return formattedTime;

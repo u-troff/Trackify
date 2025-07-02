@@ -114,7 +114,9 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   //getting drop down time entry
   //console.log(rowSelection);
   const currentTblData = Data(selectedProjectId, userId, timeEntriesLoading);
-  const Total= TotalHours(currentTblData);
+  const timeEntryObjects: TimeEntry[] = currentTblData.map(([timeEntry]) => timeEntry);
+  //console.log(timeEntryObjects);
+  const Total= TotalHours(timeEntryObjects);
   useEffect(() => {
     if (selectedProjectId === "1") {
       navigate("/time-tracking");
@@ -205,7 +207,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
 
   const table = useMaterialReactTable({
     columns,
-    data: currentTblData,
+    data: timeEntryObjects,
     enableColumnFilters: true,
     onRowSelectionChange: setRowSelection,
     state: { rowSelection },
