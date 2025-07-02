@@ -166,5 +166,16 @@ const PostTimeEntry = async(props:TimeSchema)=>{
     }
 }
 
+const DeleteTimeEntry = async(id:string)=>{
+    const path:string = `time-entries/${id}`;
+    try{
+        const response = await api.delete(path);
+        console.log("Data",response.data,"Status",response.status);
+    }catch (err){
+        throw err;
+    }
 
-export {getUsers,POST,GetSpecificUsers,PostProjects,GetProjects,GetTimeEntry,PostTimeEntry,GetSpecificTimeEntry}
+}
+
+
+export {getUsers,POST,GetSpecificUsers,PostProjects,GetProjects,GetTimeEntry,PostTimeEntry,GetSpecificTimeEntry,DeleteTimeEntry}

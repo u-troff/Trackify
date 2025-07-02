@@ -13,7 +13,7 @@ interface ProjectProps{
 }
 
 //function to update table with projects
-export function Data(projectId?:string,userId:string) {
+export function Data(projectId?:string,userId:string, loading:boolean) {
   //this if statement is for all projects
   const { data: projects =[]} = useQuery({
     queryKey: ['projects',userId],
@@ -26,7 +26,7 @@ export function Data(projectId?:string,userId:string) {
   //console.log(projectId);
   if(projectId==="1")
   {
-  const {data:timeEntries=[]} = useQuery({
+  const {data:timeEntries=[],isLoading:isTimeEntriesLoading} = useQuery({
     queryKey: ['time-entries/user/',userId],
     queryFn: ()=>GetTimeEntry(userId!),
   })

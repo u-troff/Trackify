@@ -6,11 +6,9 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs"
 interface Props {
   selected: dayjs.Dayjs | null;
   setSelected: React.Dispatch<React.SetStateAction<dayjs.Dayjs | null>>;
-  canSelect:booolean;
 }
 
  const BasicDatePicker:React.FC<Props>=(dates)=> {
-    if(!dates.canSelect){return}
     //console.log(dates.selected?.toISOString().split("T")[0]);
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>

@@ -39,7 +39,10 @@ import Project from "../Components/Projects";
 import { Spinner } from "../Spinner/Spinner";
 import {Data} from "./makeData"
 import dayjs,{Dayjs} from  'dayjs'
-
+import { useNavigate ,useLocation} from "react-router";
+import queryString from "query-string"
+import { GetSpecificTimeEntry } from "../services/ApiCalls";
+import { ResponsiveDialog } from "../Components/handleEditAndDelete";
 export interface TimeEntry{
   date: string;
   project: string;
@@ -48,144 +51,205 @@ export interface TimeEntry{
   action:string;
 }
 
-const columns: MRT_ColumnDef<TimeEntry>[] = [
-  {
-    accessorKey: "date",
-    header: "Date",
-    size: 100,
-  },
-  {
-    accessorKey: "project",
-    header: "Project",
-    size: 150,
-  },
-  {
-    accessorKey: "notes",
-    header: "Notes",
-    size: 200,
-  },
-  {
-    accessorKey: "duration",
-    header: "Duration",
-    size: 100,
-  },
-  {
-    accessorKey: "action",
-    header: "Action",
-    size: 80,
-    Cell: () => (
-      <Box sx={{ display: "flex", justifyContent: "space-between",maxWidth:100 }}>
-        <IconButton>
-          <EditIcon />
-        </IconButton>
-        <IconButton>
-          <DeleteIcon />
-        </IconButton>
-      </Box>
-    ),
-  },
-];
 
 
+interface TimeTrackProps{
+  path:string;
+}
+
+function TotalHours(timeEntry:TimeEntry[]){
+  let Total = 0;
+  const parseTimeToMinutes = (timeStr:string)=>{
+    const match = timeStr.match(/(\d+)h\s*(\d+)m/)
+    if (!match) return 0;
+
+    const hours = parseInt(match[1],10);
+    const minutes = parseInt(match[2],10);
+    return hours*60+minutes;
+  };
+
+  const formatMinutesToTime = (totalMinutes:number)=>{
+    const hours = Math.floor(totalMinutes/60);
+    const minutes = totalMinutes%60;
+    return `${hours}h ${minutes}m`;
+  }
+
+  for (let i = 0; i < timeEntry.length; i++) {
+    const element = timeEntry[i].duration;
+    Total  = Total+ parseTimeToMinutes(element);
+  }
+  return formatMinutesToTime(Total);
+}
 
 
-const TimeTracking: React.FC=()=>{
-  const [openDialog,setOpenDialog] = useState<boolean>(false);
-  const [selectedProjectId,setSelectedProjectId] = useState<string>("1")
-  //const [queryTimeEntries,setQueryTimeEntries] = useState<boolean>(false);
+const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
+  const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
+
+
+  //useStates
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [DeleteTimeEntry,setDeleteTimeEntries] = useState<TimeEntry>({});
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [openDeleteDialog,setOpenDeleteDialog] = useState<boolean>(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(()=>{
+    const params = queryString.parse(location.search);
+    return (params.projectId as string)||"1";
+  });
   const [selected, setSelected] = useState<Dayjs | null>(dayjs());
- // const [projectValues,setProjectValues] = useState({});
+  let timeEntriesLoading: boolean = false;
+  const [rowSelection, setRowSelection] = useState({});
   const userId = auth.currentUser?.uid;
-  const [canSelectDate,setCanSelectDate] = useState<boolean>(true);
-  const {data:projecs=[],error,isLoading:isProjectsLoading}= useQuery<Props[]>({
-    queryKey: ["projects",userId],
-    queryFn: ()=>GetProjects(userId!),
-    enabled:!!userId,
-    staleTime:1*60*1000,
-  })
+  const {
+    data: projecs = [],
+    error,
+    isLoading: isProjectsLoading,
+  } = useQuery<Props[]>({
+    queryKey: ["projects", userId],
+    queryFn: () => GetProjects(userId!),
+    enabled: !!userId,
+  });
 
   //getting drop down time entry
-  
-  const currentTblData = Data(selectedProjectId,userId);
-  
-
+  //console.log(rowSelection);
+  const currentTblData = Data(selectedProjectId, userId, timeEntriesLoading);
+  const Total= TotalHours(currentTblData);
+  useEffect(() => {
+    if (selectedProjectId === "1") {
+      navigate("/time-tracking");
+      setShowFilters(false);
+    }
+  }, [selectedProjectId]);
   //Mutation to post time entries
   const mutation = useMutation({
-    mutationFn:(values:{
-      project:string;
-      notes:string;
-      hours:number;
-      minutes:number;
-    })=>
+    mutationFn: (values: {
+      project: string;
+      notes: string;
+      hours: number;
+      minutes: number;
+    }) =>
       PostTimeEntry({
-        projectId:values.project,
-        userId:userId!,
+        projectId: values.project,
+        userId: userId!,
         date: new Date().toLocaleDateString(),
-        hours:values.hours,
-        minutes:values.minutes,
-        notes:values.notes,
+        hours: values.hours,
+        minutes: values.minutes,
+        notes: values.notes,
       }),
 
-      onSuccess: ()=>{
-        queryClient.invalidateQueries({queryKey:["time-entries"],exact:true});
-        setOpenDialog(false);
-        
-      },
-      onError: (error)=>{
-        console.error(error);
-      },
-      onMutate:()=>{
-        setOpenDialog(false);
-      }
-    
-  })
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["time-entries",userId,selectedProjectId],
+        exact:false,
+      });
+      setOpenDialog(false);
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+    onMutate: () => {
+      setOpenDialog(false);
+    },
+  });
+
+  //Delete Entries
+  const handleDelete = (timeEntry: TimeEntry) => {
+    setOpenDeleteDialog(true);
+    setDeleteTimeEntries(timeEntry);
+  };
+  //TotalHours(currentTblData);
+  const columns: MRT_ColumnDef<TimeEntry>[] = [
+    {
+      accessorKey: "date",
+      header: "Date",
+      size: 100,
+    },
+    {
+      accessorKey: "project",
+      header: "Project",
+      size: 150,
+    },
+    {
+      accessorKey: "notes",
+      header: "Notes",
+      size: 200,
+    },
+    {
+      accessorKey: "duration",
+      header: "Duration",
+      size: 100,
+    },
+    {
+      accessorKey: "action",
+      header: "Action",
+      size: 80,
+      Cell: ({ row }) => (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            maxWidth: 100,
+          }}
+        >
+          <IconButton>
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDelete(row.original)}>
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      ),
+    },
+  ];
 
   const table = useMaterialReactTable({
     columns,
-    data:currentTblData,
-    enableRowSelection: true,
-    enableColumnFilters:true,
+    data: currentTblData,
+    enableColumnFilters: true,
+    onRowSelectionChange: setRowSelection,
+    state: { rowSelection },
     initialState: {
       pagination: { pageSize: 10, pageIndex: 0 },
       showGlobalFilter: true,
-      showColumnFilters:true,
+      showColumnFilters: true,
     },
     //customize the MRT components
     muiPaginationProps: {
-      rowsPerPageOptions: [10, 15, 20],
+      rowsPerPageOptions: [5, 10, 15,20],
       variant: "outlined",
     },
     paginationDisplayMode: "pages",
   });
 
- 
-  
-  const handleFormSubmit = (values:{
-    project:string;
-    notes:string;
-    hours:number;
-    minutes:number;
-  })=>{
+  const handleFormSubmit = (values: {
+    project: string;
+    notes: string;
+    hours: number;
+    minutes: number;
+  }) => {
     mutation.mutate(values);
-    
-  }
-    
+  };
 
-  const handleChange =(event:any)=>{
-      setSelectedProjectId(event.target.value);
-  }
-  
-    const searchedDate = selected?.toISOString().split("T")[0];
-  
-  useEffect(()=>{
-      table.setColumnFilters((prev)=>[
-        ...prev.filter((f)=>f.id !=="date"),// Remove existing dates
-        ...(searchedDate?[{id:"date",value:searchedDate}]:[]),
-      ])
-  },[searchedDate])
-  
-  
+  const handleChange = (event: any) => {
+    const newProjectId:string = event.target.value;
+    setSelectedProjectId(event.target.value);
+    navigate(`?projectId=${newProjectId}`);
+    setShowFilters(newProjectId !== "1");
+  };
+
+  const searchedDate = selected?.toISOString().split("T")[0];
+
+  useEffect(() => {
+    if (showFilters) {
+      table.setColumnFilters((prev) => [
+        ...prev.filter((f) => f.id !== "date"), // Remove existing dates
+        ...(searchedDate ? [{ id: "date", value: searchedDate }] : []),
+      ]);
+    } else {
+      table.setColumnFilters((prev) => prev.filter((f) => f.id !== "date"));
+    }
+  }, [searchedDate, showFilters]);
 
   if (isProjectsLoading) return <Spinner />;
   return (
@@ -217,7 +281,7 @@ const TimeTracking: React.FC=()=>{
              * They just need the `table` instance passed as a prop to work!
              */}
             <MRT_GlobalFilterTextField table={table} />
-            {/*<MRT_TablePagination table={table} />*/}
+
             <Select
               value={selectedProjectId}
               displayEmpty
@@ -236,7 +300,8 @@ const TimeTracking: React.FC=()=>{
                 //add a map function for all projects
               }
             </Select>
-           <BasicDatePicker selected={selected} setSelected={setSelected} canSelect={canSelectDate}/>
+            <BasicDatePicker selected={selected} setSelected={setSelected} />
+            <MRT_TablePagination table={table} />
           </Box>
           {/* Using Vanilla Material-UI Table components here */}
           <TableContainer>
@@ -278,6 +343,20 @@ const TimeTracking: React.FC=()=>{
             </Table>
           </TableContainer>
           <MRT_ToolbarAlertBanner stackAlertBanner table={table} />
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            alignItems="center"
+            mt={2}
+            p={2}
+            bgcolor="inherit"
+            borderTop="1px solid #ddd"
+            borderRadius="0 0 8px 8px"
+          >
+            <Typography variant="subtitle1" fontWeight="bold">
+              Total Hours: {Total}
+            </Typography>
+          </Box>
         </Stack>
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
           <NewManualTimeEntry
@@ -285,6 +364,15 @@ const TimeTracking: React.FC=()=>{
             onCancel={() => setOpenDialog(false)}
           />
         </Dialog>
+        <Dialog open={openDeleteDialog} onClose={()=>setOpenDeleteDialog(false)}>
+          <ResponsiveDialog
+          open={openDeleteDialog}
+          setOpen={setOpenDeleteDialog}
+          userId={userId!}
+          timeEntry={DeleteTimeEntry}
+          />
+        </Dialog>
+        
       </Box>
     </>
   );

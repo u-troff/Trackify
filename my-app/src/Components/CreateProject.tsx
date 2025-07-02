@@ -34,6 +34,7 @@ const CreateProject:React.FC<Props>=(Props)=>{
         const API_response = PostProjects(userId,projectName,projectDescription);
         console.log(API_response);
         alert("You have created a Project!!")
+        Props.handleSuccess();
       }catch (err){
         console.log(err);
       }finally{

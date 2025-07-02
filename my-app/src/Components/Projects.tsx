@@ -34,8 +34,8 @@ const Project: React.FC = () => {
     queryClient.invalidateQueries({queryKey:['projects',userId]});
   }
 
-  const handleEdit: React.FC = () => {
-    //do nothing add for later
+  const handleNavigation: React.FC = () => {
+    
     return <></>;
   };
 
@@ -105,7 +105,7 @@ const Project: React.FC = () => {
               justifyContent: "flex-end",
             }}
           >
-            <IconButton onClick={handleEdit}>
+            <IconButton onClick={handleNavigation}>
               <EditNoteIcon sx={{ fontSize: 60 }} />
             </IconButton>
             <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
