@@ -18,8 +18,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { auth } from "../services/firebase";
 import { GetProjects, PostTimeEntry } from "../services/ApiCalls";
 import type { Props } from "../Components/Projects";
-import { useQuery } from "@tanstack/react-query";
-import type { TimeSchema } from "../services/ApiCalls";
+import { useQuery,useQueryClient } from "@tanstack/react-query";
 
 interface FormValues {
   project: string;
@@ -31,6 +30,10 @@ interface FormValues {
 interface ManualTimeEntryFormProps {
   onSubmit: (values: FormValues) => void;
   onCancel: () => void;
+  projects?:string;
+  notes?:string;
+  hours?:number;
+  minutes?:number;
 }
 
 const ManualTimeEntryForm: React.FC<ManualTimeEntryFormProps> = ({
@@ -44,16 +47,22 @@ const ManualTimeEntryForm: React.FC<ManualTimeEntryFormProps> = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const userId = auth.currentUser?.uid;
+  const queryClient= useQueryClient();
+
   const {
     data: projects = [],
     isLoading,
     error,
+    isSuccess:SuccessfullyCreated,
   } = useQuery<Props[]>({
     queryKey: ["projects", userId],
     queryFn: () => GetProjects(userId!),
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000,
   });
+
+  if (SuccessfullyCreated) {
+    queryClient.invalidateQueries(["projects", userId]);
+  }
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};

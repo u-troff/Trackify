@@ -44,20 +44,6 @@ const Project: React.FC = () => {
     return <CreateProject open={open} setOpen={setOpen} handleSuccess={handleCreateSuccess}/>;
   }
   //Figure out how to load when in the card
-  if (isLoading) {
-    return (
-      <>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}>
-          <Spinner />
-        </Box>
-      </>
-    );
-  }
 
   if(error){
     return(<>
@@ -71,53 +57,68 @@ const Project: React.FC = () => {
 
   return (
     <>
-      <Box sx={{ mt: 8, display: "flex", justifyContent: "space-between" }}>
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-            Projects
-          </Typography>
-          <Typography variant="h5" sx={{}}>
-            overview of your projects
-          </Typography>
-        </Box>
-        <Button
-          sx={{
-            bgcolor: "black",
-            boxShadow: 4,
-            color: "white",
-            width: "10vw",
-            height: "auto",
-            maxWidth: 300,
-            borderRadius: 5,
-          }}
-          onClick={handleClickOpen}
-        >
-          Add new
-        </Button>
-      </Box>
-      <Box sx={{ p: 4 }} />
-      {projects.map((p) => (
-        <Card sx={{ p: 2, mb: 1, boxShadow: 3 }} >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-            }}
-          >
-            <IconButton onClick={handleNavigation}>
-              <EditNoteIcon sx={{ fontSize: 60 }} />
-            </IconButton>
-            <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
-              <Typography>{p.name}</Typography>
-              <Typography>{p.description}</Typography>
-            </Box>
-            <Box sx={{ textAlign: "right" }}>
-              <Typography variant="h6">{p.time_spent}h</Typography>
-            </Box>
+      <Box>
+        <Box sx={{ mt: 8, display: "flex", justifyContent: "space-between" }}>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+              Projects
+            </Typography>
+            <Typography variant="h5" sx={{}}>
+              overview of your projects
+            </Typography>
           </Box>
-        </Card>
-      ))}
+          <Button
+            sx={{
+              bgcolor: "black",
+              boxShadow: 4,
+              color: "white",
+              width: "10vw",
+              height: "auto",
+              maxWidth: 300,
+              borderRadius: 5,
+            }}
+            onClick={handleClickOpen}
+          >
+            Add new
+          </Button>
+        </Box>
+        <Box sx={{ p: 4 }} />
+
+        {isLoading ? (
+            <Spinner />
+        ) : (
+          <>
+            {projects.map((p) => (
+              <Card sx={{ p: 2, mb: 1, boxShadow: 3 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <IconButton onClick={handleNavigation}>
+                    <EditNoteIcon sx={{ fontSize: 60 }} />
+                  </IconButton>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      flexGrow: 1,
+                    }}
+                  >
+                    <Typography>{p.name}</Typography>
+                    <Typography>{p.description}</Typography>
+                  </Box>
+                  <Box sx={{ textAlign: "right" }}>
+                    <Typography variant="h6">{p.time_spent}h</Typography>
+                  </Box>
+                </Box>
+              </Card>
+            ))}
+          </>
+        )}
+      </Box>
     </>
   );
 };

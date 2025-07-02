@@ -24,10 +24,11 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Skeleton
 } from "@mui/material";
 
 import Sidebar from "./SideBar";
-import { GetProjects, GetTimeEntry, PostTimeEntry, type TimeSchema } from "../services/ApiCalls";
+import { GetProjects, GetTimeEntry, PostTimeEntry, type TimeSchema ,GetSpecificTimeEntry} from "../services/ApiCalls";
 import { auth } from "../services/firebase";
 import NewManualTimeEntry from "../Components/NewManualTimeEntry"
 import EditIcon from "@mui/icons-material/Edit";
@@ -37,13 +38,12 @@ import type {Props} from '../Components/Projects'
 import BasicDatePicker from "../Components/DatePicker"
 import Project from "../Components/Projects";
 import { Spinner } from "../Spinner/Spinner";
-import {Data} from "./makeData"
 import dayjs,{Dayjs} from  'dayjs'
 import { useNavigate ,useLocation} from "react-router";
 import queryString from "query-string"
-import { GetSpecificTimeEntry } from "../services/ApiCalls";
 import { ResponsiveDialog } from "../Components/handleEditAndDelete";
 export interface TimeEntry{
+  id:string;
   date: string;
   project: string;
   notes: string;
@@ -98,9 +98,9 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     return (params.projectId as string)||"1";
   });
   const [selected, setSelected] = useState<Dayjs | null>(dayjs());
-  let timeEntriesLoading: boolean = false;
   const [rowSelection, setRowSelection] = useState({});
   const userId = auth.currentUser?.uid;
+
   const {
     data: projecs = [],
     error,
@@ -111,12 +111,56 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     enabled: !!userId,
   });
 
-  //getting drop down time entry
-  //console.log(rowSelection);
-  const currentTblData = Data(selectedProjectId, userId, timeEntriesLoading);
-  const timeEntryObjects: TimeEntry[] = currentTblData.map(([timeEntry]) => timeEntry);
-  //console.log(timeEntryObjects);
-  const Total= TotalHours(timeEntryObjects);
+  const { data: rawTimeEntries = [], isLoading: isTimeEntriesLoading } = useQuery({
+    queryKey: ["time-entries/user/", userId],
+    queryFn: () => GetTimeEntry(userId!),
+  });
+
+
+  const { data: SpecificTimeEntries = [],isLoading:isSpecificTimeEntriesLoading } = useQuery({
+    queryKey: ["time-entries/project/", selectedProjectId],
+    queryFn: () => GetSpecificTimeEntry(selectedProjectId!),
+  });
+
+  /*This is the Query calls to filter on the table and simplified it */
+  const timeEntries: TimeEntry[] = useMemo(() => {
+    if(selectedProjectId=="1"){
+    const projectMap = new Map(projecs.map((p) => [p.ProjectId, p.name]));
+    return rawTimeEntries.map((entry: any) => {
+      const formattedDate = new Date(entry.date).toISOString().split("T")[0];
+      const projectName = projectMap.get(entry.projectId) || entry.projectId;
+      const duration = `${entry.hours}h ${entry.minutes}m`;
+
+      return {
+        id: entry.id, // Use the id from the raw data
+        date: formattedDate,
+        project: projectName,
+        notes: entry.notes,
+        duration: duration,
+        action: "",
+      };
+    });
+  }else{
+    const projectMap = new Map(projecs.map((p) => [p.ProjectId, p.name]));
+    return SpecificTimeEntries.map((entry: any) => {
+      const formattedDate = new Date(entry.date).toISOString().split("T")[0];
+      const projectName = projectMap.get(entry.projectId) || entry.projectId;
+      const duration = `${entry.hours}h ${entry.minutes}m`;
+
+      return {
+        id: entry.id, // Use the id from the raw data
+        date: formattedDate,
+        project: projectName,
+        notes: entry.notes,
+        duration: duration,
+        action: "",
+      };
+    });
+  }
+  }, [rawTimeEntries, projecs,SpecificTimeEntries]);
+  //Getting the Total hours for a project
+  const Total = TotalHours(timeEntries);
+
   useEffect(() => {
     if (selectedProjectId === "1") {
       navigate("/time-tracking");
@@ -154,11 +198,15 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
       setOpenDialog(false);
     },
   });
-
+  //Edit Entries
+  const editEntry = (timeEntry:TimeEntry)=>{
+      setOpenDialog(true);
+  }
   //Delete Entries
   const handleDelete = (timeEntry: TimeEntry) => {
     setOpenDeleteDialog(true);
     setDeleteTimeEntries(timeEntry);
+    //console.log(timeEntry);
   };
   //TotalHours(currentTblData);
   const columns: MRT_ColumnDef<TimeEntry>[] = [
@@ -207,7 +255,8 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
 
   const table = useMaterialReactTable({
     columns,
-    data: timeEntryObjects,
+    data: timeEntries,
+    getRowId:(row)=>row.id,//use id from each entry
     enableColumnFilters: true,
     onRowSelectionChange: setRowSelection,
     state: { rowSelection },
@@ -224,6 +273,8 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     paginationDisplayMode: "pages",
   });
 
+
+  //add time tracking
   const handleFormSubmit = (values: {
     project: string;
     notes: string;
@@ -253,7 +304,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     }
   }, [searchedDate, showFilters]);
 
-  if (isProjectsLoading) return <Spinner />;
+  
   return (
     <>
       <Sidebar id={2} />
@@ -306,59 +357,114 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
             <MRT_TablePagination table={table} />
           </Box>
           {/* Using Vanilla Material-UI Table components here */}
-          <TableContainer>
-            <Table>
-              {/* Use your own markup, customize however you want using the power of TanStack Table */}
-              <TableHead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableCell align="center" variant="head" key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.Header ??
-                                header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableCell>
+          {isProjectsLoading ||
+          isTimeEntriesLoading ||
+          isSpecificTimeEntriesLoading ? (
+            <>
+              <Box sx={{ mb: 2 }}>
+                <Skeleton
+                  variant="rectangular"
+                  width="100"
+                  height={120}
+                  sx={{ mb: 2 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="100"
+                  height={120}
+                  sx={{ mb: 2 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="100"
+                  height={120}
+                  sx={{ mb: 2 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="100"
+                  height={120}
+                  sx={{ mb: 2 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="100"
+                  height={120}
+                  sx={{ mb: 2 }}
+                />
+                <Skeleton
+                  variant="rectangular"
+                  width="100"
+                  height={120}
+                  sx={{ mb: 2 }}
+                />
+              </Box>
+            </>
+          ) : (
+            <>
+              <TableContainer>
+                <Table>
+                  {/* Use your own markup, customize however you want using the power of TanStack Table */}
+                  <TableHead>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                          <TableCell
+                            align="center"
+                            variant="head"
+                            key={header.id}
+                          >
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.Header ??
+                                    header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     ))}
-                  </TableRow>
-                ))}
-              </TableHead>
-              <TableBody>
-                {table.getRowModel().rows.map((row, rowIndex) => (
-                  <TableRow key={row.id} selected={row.getIsSelected()}>
-                    {row.getVisibleCells().map((cell, _columnIndex) => (
-                      <TableCell align="center" variant="body" key={cell.id}>
-                        {/* Use MRT's cell renderer that provides better logic than flexRender */}
-                        <MRT_TableBodyCellValue
-                          cell={cell}
-                          table={table}
-                          staticRowIndex={rowIndex} //just for batch row selection to work
-                        />
-                      </TableCell>
+                  </TableHead>
+                  <TableBody>
+                    {table.getRowModel().rows.map((row, rowIndex) => (
+                      <TableRow key={row.id} selected={row.getIsSelected()}>
+                        {row.getVisibleCells().map((cell, _columnIndex) => (
+                          <TableCell
+                            align="center"
+                            variant="body"
+                            key={cell.id}
+                          >
+                            {/* Use MRT's cell renderer that provides better logic than flexRender */}
+                            <MRT_TableBodyCellValue
+                              cell={cell}
+                              table={table}
+                              staticRowIndex={rowIndex} //just for batch row selection to work
+                            />
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <MRT_ToolbarAlertBanner stackAlertBanner table={table} />
-          <Box
-            display="flex"
-            justifyContent="flex-end"
-            alignItems="center"
-            mt={2}
-            p={2}
-            bgcolor="inherit"
-            borderTop="1px solid #ddd"
-            borderRadius="0 0 8px 8px"
-          >
-            <Typography variant="subtitle1" fontWeight="bold">
-              Total Hours: {Total}
-            </Typography>
-          </Box>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <MRT_ToolbarAlertBanner stackAlertBanner table={table} />
+              <Box
+                display="flex"
+                justifyContent="flex-end"
+                alignItems="center"
+                mt={2}
+                p={2}
+                bgcolor="inherit"
+                borderTop="1px solid #ddd"
+                borderRadius="0 0 8px 8px"
+              >
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Total Hours: {Total}
+                </Typography>
+              </Box>
+            </>
+          )}
         </Stack>
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
           <NewManualTimeEntry
@@ -366,15 +472,16 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
             onCancel={() => setOpenDialog(false)}
           />
         </Dialog>
-        <Dialog open={openDeleteDialog} onClose={()=>setOpenDeleteDialog(false)}>
-          <ResponsiveDialog
+        <Dialog
           open={openDeleteDialog}
-          setOpen={setOpenDeleteDialog}
-          userId={userId!}
-          timeEntry={DeleteTimeEntry}
+          onClose={() => setOpenDeleteDialog(false)}
+        >
+          <ResponsiveDialog
+            open={openDeleteDialog}
+            setOpen={setOpenDeleteDialog}
+            Id={DeleteTimeEntry.id}
           />
         </Dialog>
-        
       </Box>
     </>
   );

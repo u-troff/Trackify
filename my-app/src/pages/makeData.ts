@@ -26,10 +26,10 @@ export function Data(projectId?:string,userId:string, loading:boolean) {
   //console.log(projectId);
   if(projectId==="1")
   {
-  const {data:timeEntries=[],isLoading:isTimeEntriesLoading} = useQuery({
-    queryKey: ['time-entries/user/',userId],
-    queryFn: ()=>GetTimeEntry(userId!),
-  })
+  const { data: timeEntries = [], isLoading: isTimeEntriesLoading } = useQuery({
+      queryKey: ["time-entries/user/", userId],
+      queryFn: () => GetTimeEntry(userId!),
+    });
   const currentTblData: [TimeEntry,string][]= useMemo(()=>{
   const projectMap = new Map(projects.map((p)=>[p.ProjectId,p.name]));
 

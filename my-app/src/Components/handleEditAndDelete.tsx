@@ -12,34 +12,12 @@ import { GetTimeEntry, DeleteTimeEntry } from "../services/ApiCalls";
 interface Props {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  userId: string;
-  timeEntry: TimeEntry;
+  Id: string;
+  
 }
 
 function ResponsiveDialog(props: Props) {
-  const { data: timeEntries = [] } = useQuery({
-    queryKey: ["time-entries/project/", props.userId],
-    queryFn: () => GetTimeEntry(props.userId!),
-  });
-  //console.log(timeEntries)
-  //console.log(props.timeEntry)
   const queryClient = useQueryClient();
-  //getting minutes
-  const getminutes = props.timeEntry.duration;
-  const match = getminutes.match(/(\d+)h\s*(\d+)m/);
-
-  const minutes = parseInt(match[2], 10);
-  //console.log(minutes);
-
-  //getting the specific entry
-  const timeentry = timeEntries.find(
-    (t) => t.notes === props.timeEntry.notes && t.minutes === minutes
-  );
-
-   const TimeEntryid:string = timeentry.id;
-   console.log(timeentry);
-   console.log(TimeEntryid);
-  
   const deletEntry = useMutation({
     mutationFn: (id: string) => DeleteTimeEntry(id),
     onSuccess: () => {
@@ -51,7 +29,7 @@ function ResponsiveDialog(props: Props) {
     },
   });
   const handleSubmit = () => {
-    deletEntry.mutate(TimeEntryid);
+    deletEntry.mutate(props.Id);
   };
 
   return (
@@ -62,7 +40,7 @@ function ResponsiveDialog(props: Props) {
       <DialogContent>
         <DialogContentText>
           Do you want to Delete this Project's Entry: {
-            timeentry.notes
+            //timeentry.notes
           }
         </DialogContentText>
       </DialogContent>

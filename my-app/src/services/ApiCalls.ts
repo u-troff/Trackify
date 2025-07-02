@@ -128,7 +128,7 @@ const GetSpecificTimeEntry = async(projectId:string)=>{
     const path:string = `time-entries/project/${projectId}`
     try{
         const response = await api.get(path);
-        console.log("Data",response.data,"Status",response.status);
+        //console.log("Data",response.data,"Status",response.status);
         return response.data;
     }catch (err){
         throw err;
@@ -158,7 +158,7 @@ const PostTimeEntry = async(props:TimeSchema)=>{
             "minutes":props.minutes,
             "notes":props.notes,
         });
-        console.log("Data",response.data,"Status",response.status);
+        //console.log("Data",response.data,"Status",response.status);
         return response.data;
     }catch (err){
         throw err;
