@@ -5,16 +5,17 @@ import { GetProjects } from "../services/ApiCalls";
 import { CreateProject } from "./CreateProject";
 import { auth } from "../services/firebase";
 import { Spinner } from "../Spinner/Spinner";
-import { QueryClient, useQuery,useQueryClient } from "@tanstack/react-query";
-
+import { useQuery,useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
 export interface Props {
   name: string;
   description: string;
   time_spent?: number;
   ProjectId?:string;
 }
-
+//http://localhost:5173/time-tracking?projectId=739685bf-8ad0-42fb-8a88-606d1fd8abfb
 const Project: React.FC = () => {
+  const navigate= useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const userId = auth.currentUser?.uid;
   const {data:projects=[],isLoading,error}=useQuery<Props[],Error>({
@@ -31,12 +32,13 @@ const Project: React.FC = () => {
   //check it again
   const queryClient = useQueryClient();
   const handleCreateSuccess=()=>{
-    queryClient.invalidateQueries({queryKey:['projects',userId]});
+    queryClient.invalidateQueries(['projects',userId]);
   }
 
-  const handleNavigation: React.FC = () => {
-    
-    return <></>;
+  const handleNavigation = (event:any) => {
+    const currentProject:string = event.currentTarget.id;
+    navigate(`/time-tracking?projectId=${currentProject}`);
+
   };
 
   if (open) {
@@ -85,7 +87,7 @@ const Project: React.FC = () => {
         <Box sx={{ p: 4 }} />
 
         {isLoading ? (
-            <Spinner />
+          <Spinner />
         ) : (
           <>
             {projects.map((p) => (
@@ -97,7 +99,7 @@ const Project: React.FC = () => {
                     justifyContent: "flex-end",
                   }}
                 >
-                  <IconButton onClick={handleNavigation}>
+                  <IconButton onClick={handleNavigation} id={p.ProjectId}>
                     <EditNoteIcon sx={{ fontSize: 60 }} />
                   </IconButton>
                   <Box
@@ -107,7 +109,9 @@ const Project: React.FC = () => {
                       flexGrow: 1,
                     }}
                   >
-                    <Typography>{p.name}</Typography>
+                    <Typography sx={{ fontWeight: "bold" }} variant="h6">
+                      {p.name}
+                    </Typography>
                     <Typography>{p.description}</Typography>
                   </Box>
                   <Box sx={{ textAlign: "right" }}>

@@ -26,6 +26,7 @@ interface FormValues {
   notes: string;
   hours: number;
   minutes: number;
+  timeId:string;
 }
 
 interface ManualTimeEntryFormProps {
@@ -47,7 +48,7 @@ const EditEntry: React.FC<ManualTimeEntryFormProps> = ({
   const [hours, setHours] = useState<number>(0);
   const [minutes, setMinutes] = useState<number>(0);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    
+  const [projectId,setProjectId] = useState<string>("")
   const userId = auth.currentUser?.uid;
   const queryClient= useQueryClient();
   //get all the time entries and find the specific one to edit
@@ -56,7 +57,7 @@ const EditEntry: React.FC<ManualTimeEntryFormProps> = ({
       queryKey: ["time-entries/user/", userId],
       queryFn: () => GetTimeEntry(userId!),
     });
-
+    //get all the projects the user has
     const {
         data: projects = [],
         isLoading,
@@ -69,8 +70,6 @@ const EditEntry: React.FC<ManualTimeEntryFormProps> = ({
       });
   //add the patch query here
     const EditingThisProject = rawTimeEntries.find((item)=>item.id===TimeId.id);
-    
-
     const ProjectName = projects.find((item)=>item.ProjectId===EditingThisProject.projectId);
 
     //console.log(ProjectName);
@@ -80,6 +79,7 @@ const EditEntry: React.FC<ManualTimeEntryFormProps> = ({
         setProject(EditingThisProject.projectId);
         setHours(EditingThisProject.hours);
         setMinutes(EditingThisProject.minutes);
+        setProjectId(TimeId.id);
     },[])
 
   const validateForm = () => {
@@ -107,6 +107,7 @@ const EditEntry: React.FC<ManualTimeEntryFormProps> = ({
         notes,
         hours,
         minutes,
+        timeId:projectId,
       });
       setProject("");
       setNotes("");

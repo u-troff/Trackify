@@ -30,7 +30,6 @@ const DashBoard: React.FC = () => {
         sx={{
           display: "flex",
           mt: 8,
-          ml: "200px",
           mr: 2,
           gap: 2,
           flexDirection: { xs: "column", md: "row" },

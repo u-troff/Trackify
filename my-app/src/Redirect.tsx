@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import {
   AppBar,
   Link,
@@ -17,15 +17,22 @@ import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import Sidebar from "./pages/SideBar";
 
 const ProtectedRoute: React.FC = () => {
+  const location = useLocation();
   const { currentUser, loading } = useAuth();
   const [menu, setMenu] = useState<boolean>(false);
+  const [currentPage,setCurrentPage] = useState<string>("")
+
+  useEffect(()=>{
+      const path = location.pathname;
+      setCurrentPage(path);
+  },[location])
   if (loading) {
     return <Spinner />;
   }
   return currentUser ? (
     <>
       <NavBarInMainPage menu={menu} setMenu={setMenu}/>
-      <Sidebar id={1}/>
+      <Sidebar page={currentPage} menu={menu} setMenu={setMenu}/>
       <Outlet />
     </>
   ) : (

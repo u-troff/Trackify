@@ -177,5 +177,26 @@ const DeleteTimeEntry = async(id:string)=>{
 
 }
 
+import type { Patch } from "../pages/TimeTracking";
 
-export {getUsers,POST,GetSpecificUsers,PostProjects,GetProjects,GetTimeEntry,PostTimeEntry,GetSpecificTimeEntry,DeleteTimeEntry}
+const UpdateTimeEntry= async(timeEntryId: string,values:Patch)=>{
+    const path:string = `time-entries/${timeEntryId}`;
+    const date = new  Date().toLocaleDateString();
+    try{
+        const response = await api.patch(path,{
+            "projectId":values.project,
+            "date": date,
+            "hours":values.hours,
+            "minutes":values.minutes,
+            "notes":values.notes,
+        })
+
+        console.log("Data",response.data,"Status",response.status);
+
+    }catch (err){
+        throw err;
+    }
+}
+
+
+export {getUsers,POST,GetSpecificUsers,PostProjects,GetProjects,GetTimeEntry,PostTimeEntry,GetSpecificTimeEntry,DeleteTimeEntry,UpdateTimeEntry}

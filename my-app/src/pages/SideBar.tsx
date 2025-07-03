@@ -53,13 +53,14 @@ const Sidebar:React.FC<Props>=(page)=>{
   }
   }
   for (let i = 0; i < pages.length; i++) {
-    if(pages[i].id==page.id){
+    if(pages[i].route==page.page){
       pages[i].style=true;
     }
   }
 
   const handleNav=(route:string)=>{
     navigate(route);
+    page.setMenu(false);
 
   }
   const switchTheme=()=>{
@@ -76,7 +77,9 @@ const Sidebar:React.FC<Props>=(page)=>{
 
     return(<>
 <Drawer
-variant="permanent"
+variant="temporary"
+open={page.menu}
+onClose={()=>page.setMenu(false)}
 sx={{
   width: drawerWidth,
   flexShrink: 0,

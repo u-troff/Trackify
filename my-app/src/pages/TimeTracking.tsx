@@ -28,7 +28,7 @@ import {
 } from "@mui/material";
 
 import Sidebar from "./SideBar";
-import { GetProjects, GetTimeEntry, PostTimeEntry, type TimeSchema ,GetSpecificTimeEntry} from "../services/ApiCalls";
+import { GetProjects, GetTimeEntry, PostTimeEntry, type TimeSchema ,GetSpecificTimeEntry,UpdateTimeEntry} from "../services/ApiCalls";
 import { auth } from "../services/firebase";
 import NewManualTimeEntry from "../Components/NewManualTimeEntry"
 import EditIcon from "@mui/icons-material/Edit";
@@ -50,6 +50,14 @@ export interface TimeEntry{
   notes: string;
   duration:string;
   action:string;
+}
+
+export interface Patch {
+  project: string;
+  notes: string;
+  hours: number;
+  minutes: number;
+  timeId: string;
 }
 
 
@@ -201,6 +209,22 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
       setOpenDialog(false);
     },
   });
+
+  //Mutation to update time entries
+  // const timeMutations = useMutation({
+  //   mutationFn: (updatedTimeEntry:Patch)=>UpdateTimeEntry({
+  //     projectId:updatedTimeEntry.project,
+  //     hours:updatedTimeEntry.hours,
+  //     minutes:updatedTimeEntry.minutes,
+  //     notes:updatedTimeEntry.notes,
+  //   }),
+  //   onSuccess:()=>{
+  //     queryClient.invalidateQueries({
+  //       queryKey: ["time-entries", userId, selectedProjectId],
+  //       exact: false,
+  //     });
+  //   }
+  // })
   
   //Delete Entries
   const handleDelete = (timeEntry: TimeEntry) => {
@@ -290,14 +314,10 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   }
   //console.log(currentEdits);
 
-  const handleFormEdit = (values:{
-    project: string;
-    notes: string;
-    hours: number;
-    minutes: number;
-  })=>{
+  const handleFormEdit = (values:Patch)=>{
     setOpenEditDialog(false);
     console.log("editing",values);
+    UpdateTimeEntry(values.timeId,values);
   }
 
   const handleChange = (event: any) => {
@@ -323,8 +343,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   
   return (
     <>
-      <Sidebar id={2} />
-      <Box sx={{ mt: 8, ml: "200px" }}>
+      <Box sx={{ mt: 8}}>
         <Stack sx={{ m: "2rem 0" }}>
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant="h4" sx={{ fontWeight: "bold" }}>
