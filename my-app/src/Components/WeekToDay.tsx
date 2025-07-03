@@ -1,4 +1,4 @@
-import React from "react"
+import React ,{useState}from "react"
 import { Card,CardContent,Typography,Box, IconButton } from "@mui/material";
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import {WeekToDayBarChart} from './BarChart'
@@ -8,7 +8,7 @@ import {WeekToDayBarChart} from './BarChart'
 
 
 const WeekToDay:React.FC=()=>{
-
+    const [TotalWeek,setTotalWeek] = useState<number>(0);
     return(
         <Card sx={{
             bgcolor: "#f5f5f5",
@@ -33,7 +33,7 @@ const WeekToDay:React.FC=()=>{
               </Box>
             
             <Typography variant="h3" sx={{ fontWeight: "bold", mb: 2 }}>
-              0.0h
+              {`${TotalWeek.toFixed(2)}h`}
             </Typography>
             </Box>
           <Box sx={{flexGrow: 1,
@@ -41,7 +41,7 @@ const WeekToDay:React.FC=()=>{
           maxHeight: 300,
           maxWidth: 300,
           display: 'flex',}}>
-            <WeekToDayBarChart/>
+            <WeekToDayBarChart TotalHours={TotalWeek} setTotalHour={setTotalWeek}/>
 
           </Box>
         </Card>

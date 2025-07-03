@@ -58,6 +58,7 @@ const Reports: React.FC=()=>{
               }}
             >
               {" "}
+              
               <TotalHoursReporting timeEntry={rawTimeEntries} />
               <TimeEntries timeEntry={rawTimeEntries} />
               <DailyAvg />

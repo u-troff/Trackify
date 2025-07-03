@@ -262,7 +262,7 @@ const ProjectPieChart=()=> {
         ).reduce((acc:number,curr:TimeEntry)=>acc + curr.hours+curr.minutes/60,0);
         return{name:project.name,value:totalTime}
     }).filter((data)=>data.value>0);//filter out projects with zero time
-    console.log(projectTimeData);
+    //console.log(projectTimeData);
 
     const totalPie = projectTimeData.reduce((total,index)=>total+index.value,0);//quick way to sum totals
 
@@ -275,59 +275,70 @@ const ProjectPieChart=()=> {
     
     return (
       <>
-      
-      <Card
-      sx={{
-        bgcolor: "#f5f5f5",
-        borderRadius: 2,
-        boxShadow: 1,
-        padding: 2,
-        height: "auto",
-        width: "auto",
-        maxWidth: 1000,
-        flexGrow: 1,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-      }}
-    >
-      <Box sx={{ textAlign: "center", mb: 2 }}>
-        <Typography variant="h6" color="text.secondary" sx={{ fontWeight: "bold" }}>
-          Project Time Distribution
-        </Typography>
-      </Box>
+        <Card
+          sx={{
+            bgcolor: "#f5f5f5",
+            borderRadius: 2,
+            boxShadow: 1,
+            padding: 2,
+            height: "auto",
+            width: "auto",
+            maxWidth: 1000,
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <Box sx={{ textAlign: "center", mb: 2 }}>
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              sx={{ fontWeight: "bold" }}
+            >
+              Project Time Distribution
+            </Typography>
+          </Box>
 
-      {(isProjectsLoading||isTimeEntrieloading)?(<Spinner/>):
-      (<>
-      <ResponsiveContainer width={500} height={300}>
-        <PieChart>
-          <Pie
-            dataKey="value"
-            data={projectTimeData}
-            cx="50%"
-            cy="50%"
-            outerRadius="100%"
-            fill="#8884d8"
-           
-            labelLine={true}
-          >
-            {projectTimeData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend
-          layout="vertical"
-          align="right"
-          verticalAlign="middle"
-          formatter={renderLegend}
-          wrapperStyle={{paddingLeft:20}}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-        </>)}
-    </Card>
-    </>);
+          {isProjectsLoading || isTimeEntrieloading ? (
+            <Spinner />
+          ) : (
+            <>
+              <Box sx={{whiteSpace:"nowrap",overflow:"auto"}}>
+                <ResponsiveContainer width={600} height={300}>
+                  <PieChart>
+                    <Pie
+                      dataKey="value"
+                      data={projectTimeData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="100%"
+                      fill="#8884d8"
+                      labelLine={true}
+                    >
+                      {projectTimeData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend
+                      layout="vertical"
+                      align="right"
+                      verticalAlign="middle"
+                      formatter={renderLegend}
+                      wrapperStyle={{ paddingLeft: 20 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
+            </>
+          )}
+        </Card>
+      </>
+    );
   
 };
   
