@@ -13,12 +13,12 @@ export interface Props {
   time_spent?: number;
   ProjectId?:string;
 }
-//http://localhost:5173/time-tracking?projectId=739685bf-8ad0-42fb-8a88-606d1fd8abfb
+
 const Project: React.FC = () => {
   const navigate= useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const userId = auth.currentUser?.uid;
-  const {data:projects=[],isLoading,error}=useQuery<Props[],Error>({
+  const {data:projects=[],isLoading,error,isSuccess:Successfullyloaded}=useQuery<Props[],Error>({
     queryKey: ['projects',userId],
     queryFn:()=>GetProjects(userId!),
     enabled:!!userId,//only run query if userId exists
@@ -32,7 +32,10 @@ const Project: React.FC = () => {
   //check it again
   const queryClient = useQueryClient();
   const handleCreateSuccess=()=>{
-    queryClient.invalidateQueries(['projects',userId]);
+    if(Successfullyloaded){
+      queryClient.invalidateQueries(['projects',userId]);
+    }
+    
   }
 
   const handleNavigation = (event:any) => {

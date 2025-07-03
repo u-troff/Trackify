@@ -66,7 +66,7 @@ interface TimeTrackProps{
   path:string;
 }
 
-function TotalHours(timeEntry:TimeEntry[]){
+export function TotalHours(timeEntry:TimeEntry[]){
   let Total = 0;
   const parseTimeToMinutes = (timeStr:string)=>{
     const match = timeStr.match(/(\d+)h\s*(\d+)m/)
