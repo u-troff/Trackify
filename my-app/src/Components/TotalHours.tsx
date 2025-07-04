@@ -5,14 +5,25 @@ import TimerIcon from '@mui/icons-material/Timer';
 import { GettingTimeEntries,GettingProjects } from "./ReportingCards";
 import { handleTotalTime } from "./ReportingCards";
 import { Spinner } from "../Spinner/Spinner";
-
-const TotalHours:React.FC=()=>{
+import type { GettingData } from "./BarChart";
+import { GettingBarGraphData, GettingAvg } from "../Components/BarChart";
+import { useNavigate } from "react-router";
+const TotalHours:React.FC<GettingData>=(props)=>{
   
     const TimeEntry = GettingTimeEntries();
     const Totaltime = handleTotalTime(TimeEntry[0]);
     const Projects = GettingProjects();
     const TotalProjects = Projects[0].length;
- 
+    
+
+    const projectId = "1";
+    //const [projects,projectsLoading] = GettingProjects();
+    const [BarGraphData,timeEntries] = GettingBarGraphData(Projects[0],TimeEntry[0],projectId);
+    const Avg = GettingAvg(BarGraphData);
+    const navigate = useNavigate();
+    const handleNavigate = () =>{
+      navigate("/reports");
+    }
     return(
         <Card sx={{
           bgcolor: "#f5f5f5",
@@ -30,7 +41,7 @@ const TotalHours:React.FC=()=>{
             <Typography variant="h6" color="text.secondary" sx={{ mb: 1 ,fontWeight:'bold'}}>
               Total Hours
             </Typography>
-            <IconButton>
+            <IconButton onClick={handleNavigate}>
               <TimerIcon/>
             </IconButton>
           </Box>
@@ -44,14 +55,14 @@ const TotalHours:React.FC=()=>{
                 <Box sx={{ width: 8, height: 8, bgcolor: "#000", borderRadius: "50%", mr: 1 }} />
                 <Typography variant="subtitle1">All Projects</Typography>
               </Box>
-              <Typography variant="subtitle1">{`${TotalProjects} projects`}</Typography>
+              <Typography variant="subtitle1">{`${TotalProjects}`}</Typography>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 ,gap:2}}>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Box sx={{ width: 8, height: 8, bgcolor: "#000", borderRadius: "50%", mr: 1 }} />
                 <Typography variant="subtitle1">Daily average</Typography>
               </Box>
-              <Typography variant="subtitle1">0.0h</Typography>
+              <Typography variant="subtitle1">{`${Avg.toFixed(2)}h`}</Typography>
             </Box>
           </CardContent>
         </Card>

@@ -9,6 +9,7 @@ import { auth } from "../services/firebase";
 import type {Props} from "./Projects"
 import { ResponsiveContainer,PieChart,Cell,Pie,Tooltip, Legend } from "recharts";
 import { Spinner } from "../Spinner/Spinner";
+import { GettingAvg, GettingBarGraphData, type Data, type GettingData } from "./BarChart";
 
 export const GettingTimeEntries = () => {
     const UID = auth.currentUser?.uid;
@@ -104,7 +105,7 @@ const TotalHoursReporting: React.FC<TimeEntry[]> = ({ timeEntry }) => {
               color="text.secondary"
               sx={{ fontWeight: "bold" }}
             >
-              Total Hours
+              Total Hours per Project
             </Typography>
             <Typography
               variant="h4"
@@ -177,7 +178,17 @@ const TimeEntries: React.FC<TimeEntry[]> = ({ timeEntry }) => {
   );
 };
 
-const DailyAvg: React.FC = () => {
+interface DailyAvg{
+  BarGraphData: Data[];
+}
+
+const DailyAvg: React.FC<DailyAvg> = (props) => {
+  const projectId = "1";
+  // const [projects,projectsLoading] = GettingProjects();
+  // const [timeEntries,timeEntriesLoading] =GettingTimeEntries();
+  // const [BarGraphData,_] = GettingBarGraphData(projects,timeEntries,projectId);
+  // console.log(props.BarGraphData)
+  const Avg = GettingAvg(props.BarGraphData);
   const handleDayAvg = () => {
     //logic to get total time
   };
@@ -214,14 +225,14 @@ const DailyAvg: React.FC = () => {
               color="text.secondary"
               sx={{ fontWeight: "bold" }}
             >
-              Daily Average
+              Weekly Average per project
             </Typography>
             <Typography
               variant="h4"
               color="text"
               sx={{ mb: 1, fontWeight: "bold" }}
             >
-              0.0h
+              {`${Avg.toFixed(2)}h`}
             </Typography>
           </Box>
         </Box>
@@ -239,14 +250,27 @@ const COLORS = [
   "#FF6384",
 ];
 
-const data01 = [
-  { name: "Group A", value: 400 },
-  { name: "Group B", value: 300 },
-  { name: "Group C", value: 300 },
-  { name: "Group D", value: 200 },
-  { name: "Group E", value: 278 },
-  { name: "Group F", value: 189 },
-];
+
+
+export const PieGraphData=(projects:any,timeEntries:any)=>{
+  const projectTimeData = projects
+    .map((project) => {
+      const totalTime = timeEntries
+        .filter((entry: TimeEntry) => project.ProjectId === entry.projectId)
+        .reduce(
+          (acc: number, curr: TimeEntry) =>
+            acc + curr.hours + curr.minutes / 60,
+          0
+        );
+      return { name: project.name, value: totalTime };
+    })
+    .filter((data) => data.value > 0); //filter out projects with zero time
+  //console.log(projectTimeData);
+    return [projectTimeData.reduce((total,index)=>total+index.value,0),projectTimeData];//quick way to sum totals
+
+
+}
+
 
 
 const ProjectPieChart=()=> {
@@ -255,21 +279,13 @@ const ProjectPieChart=()=> {
     const [timeEntries,isTimeEntrieloading] = GettingTimeEntries();
    
     //console.log(projects);
-    const projectTimeData = projects.map((project)=>{
+    
 
-        const totalTime = timeEntries.filter((entry:TimeEntry)=>
-            project.ProjectId === entry.projectId
-        ).reduce((acc:number,curr:TimeEntry)=>acc + curr.hours+curr.minutes/60,0);
-        return{name:project.name,value:totalTime}
-    }).filter((data)=>data.value>0);//filter out projects with zero time
-    //console.log(projectTimeData);
-
-    const totalPie = projectTimeData.reduce((total,index)=>total+index.value,0);//quick way to sum totals
-
+    const totalPie = PieGraphData(projects,timeEntries);
     //Legend of the pie chart
     const renderLegend = (value:string,entry:any)=>{
         const {payload}= entry;
-        const percent = totalPie>0?((payload.value/totalPie)*100).toFixed(1):0;
+        const percent = totalPie[0]>0?((payload.value/totalPie[0])*100).toFixed(1):0;
         return `${value} (${percent}%)`;
     }
     
@@ -305,18 +321,18 @@ const ProjectPieChart=()=> {
           ) : (
             <>
               <Box sx={{whiteSpace:"nowrap",overflow:"auto"}}>
-                <ResponsiveContainer width={600} height={300}>
+                <ResponsiveContainer width={1000} height={300}>
                   <PieChart>
                     <Pie
                       dataKey="value"
-                      data={projectTimeData}
+                      data={totalPie[1]}
                       cx="50%"
                       cy="50%"
                       outerRadius="100%"
                       fill="#8884d8"
                       labelLine={true}
                     >
-                      {projectTimeData.map((entry, index) => (
+                      {totalPie[1].map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}

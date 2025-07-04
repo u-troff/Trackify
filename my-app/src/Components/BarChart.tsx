@@ -1,72 +1,112 @@
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
   } from 'recharts';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Typography,Select,Card,Box ,FormControl,MenuItem} from '@mui/material';
 import { GettingProjects, GettingTimeEntries } from './ReportingCards';
 import { Spinner } from '../Spinner/Spinner';
+import type { CurrentProject } from '../pages/Reports';
   //this is just dummy data at the moment
 
 
-  interface Data{
+export  interface Data{
     date:string;
     projectId:string;
     project:string;
     hours:number;
 
   }
-  const data = [
-    { name: 'Monday', uv: 2500 ,pv: 3000,hours:1},
-    { name: 'Tuesday', uv: 3000 ,pv:2000,hours:2},
-    { name: 'Wednesday', uv: 2000 ,pv:1500,hours:2},
-    { name: 'Thursday', uv: 2780 ,pv:3500,hours:8},
-    { name: 'Friday', uv: 2400 ,pv:350,hours:6},
-    { name: 'Saturday', uv: 1200 ,pv:2900,hours:3},
-    { name: 'Sunday', uv: 280 ,pv:500,hours:5},
-  ];
+  const CustomToolTip=({active,payload})=>{//these propetries as passed from the toolTip
+    if(active&&payload&&payload.length){
+        const item = payload[0].payload;
+        return (
+          <div
+            style={{
+              background: "#fff",
+              border: "1px solid #ccc",
+              padding: 10,
+            }}
+          >
+            <p>
+              <strong>{item.project}</strong>
+            </p>
+            <p>hours: {item.hours}</p>
+          </div>
+        );
+    }
+  }
 
 
-const Statistics:React.FC =()=>{
+export interface GettingData {
+  setAverage: React.Dispatch<React.SetStateAction<number>>;
+  Avg?:number;
+}
+
+
+
+export const GettingAvg=(prop:Data[])=>{
+  const TotalWeeklyHours = prop.reduce((acc:number,curr:Data)=>{
+        return acc+curr.hours;
+  },0)
+
+  return (TotalWeeklyHours/7);
+}
+
+export const GettingBarGraphData = (projects: any,timeEntries:any,projectId:string) => {
+
+  const date = new Date();
+  date.setDate(date.getDate() - 7);
+  const oneWeekAgo = date.toISOString().split("T")[0];
+
+  const filteredEntries = timeEntries.filter((entry) => {
+    const formattedDate = entry.date.split("T")[0];
+    return (
+      formattedDate > oneWeekAgo &&
+      (projectId === "1" || entry.projectId === projectId)
+    );
+  });
+  //try to get one decimal place when doing this
+
+  const groupedData = filteredEntries.reduce(
+    (acc: { [key: string]: Data }, entry) => {
+      const dateKey = entry.date.split("T")[0];
+      const dayOfWeek = new Date(dateKey).toLocaleDateString("en-US",{//change from the date to the actual day of the week
+        weekday:"long"
+      });
+      const projectName = projects.filter(
+        (p) => p.ProjectId === entry.projectId
+      );
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = {
+          date: dayOfWeek,
+          projectId: entry.projectId,
+          project: projectName[0]?projectName[0].name:"",
+          hours: 0,
+        };
+      }
+      acc[dateKey].hours += entry.hours + entry.minutes / 60;
+      return acc;
+    },
+    {}
+  );
+  return [Object.values(groupedData) as Data[],filteredEntries];
+
+};
+
+const Statistics:React.FC<CurrentProject> =(props)=>{
     
     const [projectId,setProjectId] = useState<string>("1");
     const [projects,projectsLoading] = GettingProjects();
     const [timeEntries,timeEntriesLoading] =GettingTimeEntries();
     //console.log(timeEntries);
-    const date = new Date();
-   (date.setDate(date.getDate()-7))
-    const oneWeekAgo = date.toISOString().split("T")[0];
     
-    const filteredEntries = timeEntries.filter((entry)=>{
-      const formattedDate = entry.date.split("T")[0];
-      return (
-        formattedDate > oneWeekAgo &&
-        (projectId === "1" || entry.projectId === projectId)
-      );
-    });
-    //try to get one decimal place when doing this
-    
-    const groupedData = filteredEntries.reduce(
-      (acc: { [key: string]: Data }, entry) => {
-        const dateKey = entry.date.split("T")[0];
-        if (!acc[dateKey]) {
-          acc[dateKey] = {
-            date: dateKey,
-            projectId: entry.projectId,
-            project: entry.project,
-            hours: 0,
-          };
-        }
-        acc[dateKey].hours += (entry.hours + entry.minutes / 60);
-        return acc;
-      },
-      {}
-    );
-
-    const BarGraphData = Object.values(groupedData) as Data[];
-
-
+    const [BarGraphData,newTimeEntries] = GettingBarGraphData(projects,timeEntries,projectId);
+   
+    //console.log(BarGraphData)
     const handleProject=(e)=>{
       setProjectId(e.target.value);
+      props.setProjectId(e.target.value);
       
     }
 
@@ -99,28 +139,29 @@ const Statistics:React.FC =()=>{
           </Box>
         </Box>
         <Box sx={{ whiteSpace: "nowrap", overflow: "auto" }}>
-          {(projectsLoading||timeEntriesLoading)?(
-                <Spinner/>
-          ):(
-          <ResponsiveContainer width="100%" height={500}>
-            <BarChart
-              layout="horizontal"
-              data={BarGraphData}
-              margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis
-                domain={[0, "dataMax"]}
-                tickFormatter={(value) => value.toFixed(2)}
-              />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="hours" fill="#8884d8" maxBarSize={80} />
-            </BarChart>
-          </ResponsiveContainer>
-
-            )}
+          
+            <ResponsiveContainer width="100%" height={500}>
+              {(projectsLoading || timeEntriesLoading)?(
+                <Spinner />
+              ):(
+              <BarChart
+                layout="horizontal"
+                data={BarGraphData}
+                margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" allowDataOverflow={true} reversed/>
+                <YAxis
+                  domain={[0, "dataMax"]}
+                  tickFormatter={(value) => value.toFixed(2)}
+                />
+                <Tooltip content={<CustomToolTip/>}/>
+                <Legend />
+                <Bar dataKey="hours" fill="#8884d8" maxBarSize={80} />
+              </BarChart>
+)}
+            </ResponsiveContainer>
+          
         </Box>
       </Card>
     );
@@ -133,7 +174,9 @@ const Statistics:React.FC =()=>{
     TotalHours: number;
     setTotalHour: React.Dispatch<React.SetStateAction<number>>;
   }
-  const WeekToDayBarChart:React.FC<prop> =(prop)=>{
+
+
+const WeekToDayBarChart:React.FC<prop> =(prop)=>{
     
     const [timeEntries, timeEntriesLoading] = GettingTimeEntries();
     //console.log(timeEntries);
@@ -176,16 +219,21 @@ const Statistics:React.FC =()=>{
     if(timeEntriesLoading){
       return(<Spinner/>)
     }
-    return(<>
-    
+    return (
+      <>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={BarGraphData}>
             <Tooltip />
-            <Bar dataKey="hours" fill="#aaa" barSize={28} radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="hours"
+              fill="#aaa"
+              barSize={28}
+              radius={[4, 4, 0, 0]}
+            />
+            <Tooltip content={<CustomToolTip />} />
           </BarChart>
         </ResponsiveContainer>
-  
-    
-    </>);
+      </>
+    );
   }
   export {Statistics,WeekToDayBarChart}

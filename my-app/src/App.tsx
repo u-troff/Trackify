@@ -1,7 +1,7 @@
 
 //import {Button,Typography,Container} from '@mui/material';
 import './App.css'
-import React from 'react'
+import React, { useState } from 'react'
 //import API from "./services/firebase"
 import SignUp from './pages/SignUp'
 import { Route,Routes } from 'react-router-dom'
@@ -18,6 +18,7 @@ import Reports from './pages/Reports'
 const App: React.FC = ()=> {
       //const [selectedProjectId, setSelectedProjectId] = useState<string>("1");
       const path:string = `/time-tracking/?projectId=<id>`
+      const [Avg,setAvg] = useState<number>(0)
 
       return (
         <AuthProvider>
@@ -26,7 +27,7 @@ const App: React.FC = ()=> {
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard setAverage={setAvg} />} />
               <Route
                 path="/time-tracking"
                 element={
@@ -35,7 +36,7 @@ const App: React.FC = ()=> {
                   />
                 }
               />
-              <Route path="/reports" element={<Reports />} />
+              <Route path="/reports" element={<Reports Avg={Avg} setAverage={setAvg}/>} />
             </Route>
           </Routes>
         </AuthProvider>

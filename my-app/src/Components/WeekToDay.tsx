@@ -2,13 +2,17 @@ import React ,{useState}from "react"
 import { Card,CardContent,Typography,Box, IconButton } from "@mui/material";
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import {WeekToDayBarChart} from './BarChart'
-
+import { useNavigate } from "react-router";
 
 
 
 
 const WeekToDay:React.FC=()=>{
     const [TotalWeek,setTotalWeek] = useState<number>(0);
+    const navigate = useNavigate();
+    const handleNavigate = () => {
+      navigate("/reports");
+    };
     return(
         <Card sx={{
             bgcolor: "#f5f5f5",
@@ -25,9 +29,9 @@ const WeekToDay:React.FC=()=>{
             <Box sx={{p:0, bgcolor:"inherit" ,textAlign:'left'}}>
               <Box sx={{display:'flex',justifyContent:'space-between'}}>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1,fontWeight:'bold' }}>
-                Week to Date
+                Hours This week
             </Typography>
-            <IconButton>
+            <IconButton onClick={handleNavigate}>
               <CalendarTodayIcon/>
             </IconButton>
               </Box>

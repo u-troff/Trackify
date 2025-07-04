@@ -10,8 +10,15 @@ import { TotalHoursReporting,TimeEntries ,DailyAvg} from "../Components/Reportin
 import { GetTimeEntry } from "../services/ApiCalls";
 import { auth } from "../services/firebase";
 import {ProjectPieChart}  from "../Components/ReportingCards";
-import { Statistics } from "../Components/BarChart";
+import { GettingBarGraphData, Statistics } from "../Components/BarChart";
+import type { GettingData } from "../Components/BarChart";
+import { useState } from "react";
+import { GettingProjects,GettingTimeEntries } from "../Components/ReportingCards";
 
+export interface CurrentProject {
+  projectId: string;
+  setProjectId: React.Dispatch<React.SetStateAction<string>>;
+}
 const Reports: React.FC=()=>{
   const userId = auth.currentUser?.uid;
   
@@ -20,6 +27,15 @@ const Reports: React.FC=()=>{
       queryKey: ["time-entries/user/", userId],
       queryFn: () => GetTimeEntry(userId!),
     });
+
+
+    const [projectId,setProjectId] = useState<string>("1");
+    const [projects,projectsLoading] = GettingProjects();
+    const [timeEntries,timeEntriesLoading] =GettingTimeEntries();
+    const [BarGraphData,newTimeEntries] = GettingBarGraphData(projects,timeEntries,projectId);
+    console.log(BarGraphData);
+   
+
     return (
       <>
         <Box
@@ -28,7 +44,10 @@ const Reports: React.FC=()=>{
             mt: 8,
             mr: 2,
             gap: 2,
-            flexDirection: { xs: "column", md: "row" },
+            flexDirection: "row",
+            "@media (max-width:1700px)":{
+              flexDirection: "column",
+            }
           }}
         >
           <Box
@@ -59,9 +78,9 @@ const Reports: React.FC=()=>{
             >
               {" "}
               
-              <TotalHoursReporting timeEntry={rawTimeEntries} />
+              <TotalHoursReporting timeEntry={newTimeEntries} />
               <TimeEntries timeEntry={rawTimeEntries} />
-              <DailyAvg />
+              <DailyAvg BarGraphData={BarGraphData} />
             </Card>
 
             <Box sx={{ height: 10 }}></Box>
@@ -75,7 +94,7 @@ const Reports: React.FC=()=>{
               }}
             >
               <CardContent>
-                <Statistics/>
+                <Statistics setProjectId={setProjectId} />
               </CardContent>
             </Card>
             <Card sx={{ maxWidth: 1000 }}></Card>

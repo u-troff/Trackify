@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Toolbar,
   Typography,
@@ -13,15 +13,11 @@ import { Statistics } from "../Components/BarChart";
 import WeekToDay from "../Components/WeekToDay";
 import ProgressBars from "../Components/Progress";
 import Project from "../Components/Projects";
+import type { GettingData } from "../Components/BarChart";
 
-const projectData = [
-  { name: "Project A", progress: 75 },
-  { name: "Project B", progress: 40 },
-  { name: "Project C", progress: 90 },
-  { name: "Project D", progress: 25 },
-];
-
-const DashBoard: React.FC = () => {
+import { GettingTimeEntries,GettingProjects } from "../Components/ReportingCards";
+const DashBoard: React.FC<GettingData> = (prop) => {
+  
   return (
     <>
   
@@ -58,7 +54,7 @@ const DashBoard: React.FC = () => {
               boxSizing: "border-box",
             }}
           >
-            <TotalHours />
+            <TotalHours setAverage={prop.setAverage} Avg={prop.Avg}/>
             <WeekToDay />
           </Card>
 
@@ -73,7 +69,7 @@ const DashBoard: React.FC = () => {
             }}
           >
             <CardContent>
-              <Statistics />
+              <Statistics setAverage={prop.setAverage}/>
             </CardContent>
           </Card>
           <Card sx={{ maxWidth: 1000 }}>
