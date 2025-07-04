@@ -1,4 +1,4 @@
-import React, { useEffect,useState,PureComponent } from "react";
+import React, { useEffect,useState,PureComponent ,useMemo} from "react";
 import { Card, CardContent, Typography, Box, IconButton, } from "@mui/material";
 import MoreTimeIcon from "@mui/icons-material/MoreTime";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
@@ -10,6 +10,12 @@ import type {Props} from "./Projects"
 import { ResponsiveContainer,PieChart,Cell,Pie,Tooltip, Legend } from "recharts";
 import { Spinner } from "../Spinner/Spinner";
 import { GettingAvg, GettingBarGraphData, type Data, type GettingData } from "./BarChart";
+
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from "material-react-table";
 
 export const GettingTimeEntries = () => {
     const UID = auth.currentUser?.uid;
@@ -273,6 +279,35 @@ export const PieGraphData=(projects:any,timeEntries:any)=>{
 
 
 
+const columns: MRT_ColumnDef<TimeEntry>[] = [
+  {
+    accessorKey: "date",
+    header: "Date",
+    size: 100,
+  },
+  {
+    accessorKey: "project",
+    header: "Project",
+    size: 150,
+  },
+  {
+    accessorKey: "notes",
+    header: "Notes",
+    size: 200,
+  },
+  {
+    accessorKey: "duration",
+    header: "Duration",
+    size: 100,
+  },
+  {
+    accessorKey: "action",
+    header: "Action",
+    size: 80,
+  },
+];
+
+
 const ProjectPieChart=()=> {
 
     const [projects,isProjectsLoading] = GettingProjects();
@@ -321,7 +356,7 @@ const ProjectPieChart=()=> {
           ) : (
             <>
               <Box sx={{whiteSpace:"nowrap",overflow:"auto"}}>
-                <ResponsiveContainer width={1000} height={300}>
+                <ResponsiveContainer width={800} height={300}>
                   <PieChart>
                     <Pie
                       dataKey="value"
@@ -357,6 +392,89 @@ const ProjectPieChart=()=> {
     );
   
 };
+
+function parseDuration(duration: string): number {
+  const hours = parseInt(duration.match(/(\d+)h/)?.[1] || "0", 10);
+  const minutes = parseInt(duration.match(/(\d+)m/)?.[1] || "0", 10);
+  return hours * 60 + minutes;
+}
+
+
+const TopEntries = () => {
+  const [projects, isProjectsLoading] = GettingProjects();
+  const [timeEntries, isTimeEntrieloading] = GettingTimeEntries();
+
+  const ToptimeEntries: TimeEntry[] = useMemo(() =>{
+    const projectMap = new Map(projects.map((p) => [p.ProjectId, p.name]));
+    return timeEntries.map((entry: any) => {
+      const formattedDate = new Date(entry.date).toISOString().split("T")[0];
+      const projectName = projectMap.get(entry.projectId) || entry.projectId;
+      const duration = `${entry.hours}h ${entry.minutes}m`;
+      
+      return {
+        id: entry.id, // Use the id from the raw data
+        date: formattedDate,
+        project: projectName,
+        notes: entry.notes,
+        duration: duration,
+        action: "",
+      };
+    });
+  
+},[projects,timeEntries]);
+  
+  const SortedUsers = ToptimeEntries.sort((entryA,entryB)=>parseDuration(entryB.duration)-parseDuration(entryA.duration));
+
+  const table = useMaterialReactTable({
+    columns,
+    getRowId:(row)=>row.id,
+    data:SortedUsers, //data must be memoized or stable (useState, useMemo, defined outside of this component, etc.)
+    initialState: {
+      pagination:{pageSize:5,pageIndex:0},
+
+    },
+  });
+
+  return (
+    <>
+      <Card
+        sx={{
+          bgcolor: "#f5f5f5",
+          borderRadius: 2,
+          boxShadow: 1,
+          padding: 2,
+          height: "auto",
+          width: "auto",
+          maxWidth: 1000,
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ textAlign: "center", mb: 2 }}>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ fontWeight: "bold" }}
+          >
+            Top Entries
+          </Typography>
+        </Box>
+
+        {isProjectsLoading || isTimeEntrieloading ? (
+          <Spinner />
+        ) : (
+          <>
+            <Box sx={{ whiteSpace: "nowrap", overflow: "auto" }}>
+              <MaterialReactTable table={table} />
+            </Box>
+          </>
+        )}
+      </Card>
+    </>
+  );
+};
   
 
-export { TotalHoursReporting, TimeEntries, DailyAvg,ProjectPieChart};
+export { TotalHoursReporting, TimeEntries, DailyAvg,ProjectPieChart,TopEntries};

@@ -1,12 +1,12 @@
 import React from "react"
 
 import {Link} from 'react-router-dom'
-import { AppBar,Box,Toolbar,Typography,Card,CardContent} from "@mui/material";
+import { AppBar,Box,Toolbar,Typography,Card,CardContent,Button} from "@mui/material";
 import Sidebar from "./SideBar";
 import { NavBarInMainPage } from "../Redirect";
 import { Navigate } from "react-router-dom";
 import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
-import { TotalHoursReporting,TimeEntries ,DailyAvg} from "../Components/ReportingCards";
+import { TotalHoursReporting,TimeEntries ,DailyAvg, TopEntries} from "../Components/ReportingCards";
 import { GetTimeEntry } from "../services/ApiCalls";
 import { auth } from "../services/firebase";
 import {ProjectPieChart}  from "../Components/ReportingCards";
@@ -45,9 +45,9 @@ const Reports: React.FC=()=>{
             mr: 2,
             gap: 2,
             flexDirection: "row",
-            "@media (max-width:1700px)":{
+            "@media (max-width:1700px)": {
               flexDirection: "column",
-            }
+            },
           }}
         >
           <Box
@@ -61,9 +61,25 @@ const Reports: React.FC=()=>{
               mb: 2,
             }}
           >
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
-              Reporting
-            </Typography>
+            <Box
+              sx={{
+                justifyContent: "space-between",
+                flexDirection: "row",
+                display: "flex",
+                alignContent: "center",
+              }}
+            >
+              <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
+                Reporting
+              </Typography>
+
+              <Button
+                variant="contained"
+                sx={{ color: "white", bgcolor: "black", width: 200 }}
+              >
+                Export
+              </Button>
+            </Box>
 
             <Card
               sx={{
@@ -77,7 +93,6 @@ const Reports: React.FC=()=>{
               }}
             >
               {" "}
-              
               <TotalHoursReporting timeEntry={newTimeEntries} />
               <TimeEntries timeEntry={rawTimeEntries} />
               <DailyAvg BarGraphData={BarGraphData} />
@@ -99,6 +114,7 @@ const Reports: React.FC=()=>{
             </Card>
             <Card sx={{ maxWidth: 1000 }}></Card>
           </Box>
+          <Box sx={{display:'flex',flexDirection:'column',alignContent:'center',alignItems:'center',gap:4}}>
           <Card
             sx={{
               display: "flex",
@@ -110,14 +126,32 @@ const Reports: React.FC=()=>{
               boxSizing: "border-box",
             }}
           >
-            <Box sx={{p:2}}>
-              <Typography variant="h5" sx={{fontWeight:'bold' ,mb:2}}>
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
                 Project Overview
               </Typography>
-              <ProjectPieChart/>
+              <ProjectPieChart />
             </Box>
-          
           </Card>
+          <Card
+            sx={{
+              display: "flex",
+              flexDirection: "row", // Stack on small screens, row on medium/large
+              gap: 2, // Space between cards
+              p: 2, // Padding around the container
+              maxWidth: 2000, // Ensure it respects parent width
+              width: "auto", // Full width of parent
+              boxSizing: "border-box",
+            }}
+          >
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+                Top Entries
+              </Typography>
+              <TopEntries />
+            </Box>
+          </Card>
+          </Box>
         </Box>
       </>
     );
