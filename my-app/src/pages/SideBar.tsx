@@ -14,7 +14,7 @@ import type {NavigateFunction} from 'react-router-dom'
 import ContrastIcon from '@mui/icons-material/Contrast';
 
 
-const drawerWidth: number = 200;
+const drawerWidth: number = 300;
 interface Props {
   page?: string;
   icon?: string;

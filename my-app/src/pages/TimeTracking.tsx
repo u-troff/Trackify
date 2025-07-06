@@ -43,6 +43,8 @@ import { useNavigate ,useLocation} from "react-router";
 import queryString from "query-string"
 import { ResponsiveDialog } from "../Components/handleEditAndDelete";
 import EditEntry from "../Components/EditTime"
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import ContinualTimeEntry from "../Components/ContinualTimeEntry";
 export interface TimeEntry{
   id:string;
   date: string;
@@ -110,6 +112,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   const [selected, setSelected] = useState<Dayjs | null>(dayjs());
   const [rowSelection, setRowSelection] = useState({});
   const [currentEdits,setCurrentEdits] = useState<TimeEntry>();
+  const [continualTime, setContinualTime]= useState<boolean>(false);
   const userId = auth.currentUser?.uid;
 
   const {
@@ -201,30 +204,34 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
         exact:false,
       });
       setOpenDialog(false);
+      setContinualTime(false);
     },
     onError: (error) => {
       console.error(error);
     },
     onMutate: () => {
       setOpenDialog(false);
+      setContinualTime(false);
     },
   });
 
   //Mutation to update time entries
-  // const timeMutations = useMutation({
-  //   mutationFn: (updatedTimeEntry:Patch)=>UpdateTimeEntry({
-  //     projectId:updatedTimeEntry.project,
-  //     hours:updatedTimeEntry.hours,
-  //     minutes:updatedTimeEntry.minutes,
-  //     notes:updatedTimeEntry.notes,
-  //   }),
-  //   onSuccess:()=>{
-  //     queryClient.invalidateQueries({
-  //       queryKey: ["time-entries", userId, selectedProjectId],
-  //       exact: false,
-  //     });
-  //   }
-  // })
+  const timeMutations = useMutation({
+    mutationFn: (updatedTimeEntry:Patch)=>UpdateTimeEntry({
+      timeId: updatedTimeEntry.timeId,
+      project:updatedTimeEntry.project,
+      hours:updatedTimeEntry.hours,
+      minutes:updatedTimeEntry.minutes,
+      notes:updatedTimeEntry.notes,
+    }),
+    onSuccess:()=>{
+      queryClient.invalidateQueries({
+        queryKey: ["time-entries", userId, selectedProjectId],
+        exact: false,
+      });
+      setOpenEditDialog(false);
+    }
+  })
   
   //Delete Entries
   const handleDelete = (timeEntry: TimeEntry) => {
@@ -315,9 +322,20 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   //console.log(currentEdits);
 
   const handleFormEdit = (values:Patch)=>{
-    setOpenEditDialog(false);
+    timeMutations.mutate(values);
     console.log("editing",values);
-    UpdateTimeEntry(values.timeId,values);
+    
+  }
+
+  //for continualTimeEntries
+  const handleContinualTime = (value: {
+    project: string;
+    notes: string;
+    hours: number;
+    minutes: number;
+  })=>{
+    console.log(value);
+    mutation.mutate(value);
   }
 
   const handleChange = (event: any) => {
@@ -343,19 +361,24 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   
   return (
     <>
-      <Box sx={{ mt: 8}}>
+      <Box sx={{ mt: 8 }}>
         <Stack sx={{ m: "2rem 0" }}>
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant="h4" sx={{ fontWeight: "bold" }}>
               Time Entry
             </Typography>
-            <Button
-              variant="contained"
-              sx={{ color: "white", bgcolor: "black" }}
-              onClick={() => setOpenDialog(true)}
-            >
-              Track Time
-            </Button>
+            <Box >
+              <IconButton onClick={()=>setContinualTime(true)}>
+                  <PlayArrowIcon sx={{fontSize:40, color:'black'}}/>
+              </IconButton>
+              <Button
+                variant="contained"
+                sx={{ color: "white", bgcolor: "black" }}
+                onClick={() => setOpenDialog(true)}
+              >
+                Track Time
+              </Button>
+            </Box>
           </Box>
           <Box
             sx={{
@@ -523,6 +546,11 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
             onCancel={() => setOpenEditDialog(false)}
             TimeId={currentEdits}
           />
+        </Dialog>
+
+        <Dialog open={continualTime} onClose={()=>setContinualTime(false)}>
+          <ContinualTimeEntry onCancel={()=>setContinualTime(false)}
+            onSubmit={handleContinualTime}/>
         </Dialog>
       </Box>
     </>

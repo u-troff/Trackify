@@ -179,8 +179,8 @@ const DeleteTimeEntry = async(id:string)=>{
 
 import type { Patch } from "../pages/TimeTracking";
 
-const UpdateTimeEntry= async(timeEntryId: string,values:Patch)=>{
-    const path:string = `time-entries/${timeEntryId}`;
+const UpdateTimeEntry= async(values:Patch)=>{
+    const path:string = `time-entries/${values.timeId}`;
     const date = new  Date().toLocaleDateString();
     try{
         const response = await api.patch(path,{
