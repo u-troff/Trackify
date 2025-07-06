@@ -55,8 +55,15 @@ function NavBar() {
   return (
     <>
       <AppBar
-        position="static"
-        sx={{ margin: 0, border: 0, color: "blue", backgroundColor: "grey" }}
+        position="fixed"
+        sx={{
+          margin: 0,
+          border: 0,
+          color: "white",
+          backgroundColor: "#272B90",
+          p: 0,
+          zIndex: 1201,
+        }}
         color="inherit"
       >
         <Toolbar>
@@ -98,12 +105,15 @@ interface Props {
 const NavBarInMainPage: React.FC<Props> = (props) => {
   return (
     <Box display="flex">
-      <AppBar position="fixed" sx={{ zIndex: 1201 }}>
+      <AppBar
+        position="fixed"
+        sx={{ zIndex: 1201, backgroundColor: "#272B90" }}
+      >
         <Toolbar>
-          <IconButton onClick={()=>props.setMenu(!props.menu)}> 
-            <MenuOutlinedIcon />
+          <IconButton onClick={() => props.setMenu(!props.menu)} >
+            <MenuOutlinedIcon sx={{fontSize:40}}/>
           </IconButton>
-          <Typography variant="h6" noWrap>
+          <Typography variant="h4" noWrap>
             TU Track
           </Typography>
         </Toolbar>

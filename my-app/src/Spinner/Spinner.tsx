@@ -14,14 +14,14 @@ const Spinner = ({isLoading =true}:Props)=>{
 
   return (
     <>
-    <div id="loading-spinner">
+      <div id="loading-spinner">
         <ClipLoader
-             color="#36d7b7"
-             loading={isLoading}
-             size ={50}
-             data-testid="loader"
+          color="#0D13CB"
+          loading={isLoading}
+          size={50}
+          data-testid="loader"
         />
-    </div>
+      </div>
     </>
   );
 }

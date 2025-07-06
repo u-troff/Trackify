@@ -7,10 +7,11 @@ import { auth } from "../services/firebase";
 import { Spinner } from "../Spinner/Spinner";
 import { useQuery,useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
+import { GettingTimeEntries, handleTotalTime } from "./ReportingCards";
 export interface Props {
   name: string;
   description: string;
-  time_spent?: number;
+  time_spent?: number|string;
   ProjectId?:string;
 }
 
@@ -18,22 +19,32 @@ const Project: React.FC = () => {
   const navigate= useNavigate();
   const [open, setOpen] = useState<boolean>(false);
   const userId = auth.currentUser?.uid;
+  const queryClient = useQueryClient();
   const {data:projects=[],isLoading,error,isSuccess:Successfullyloaded}=useQuery<Props[],Error>({
     queryKey: ['projects',userId],
     queryFn:()=>GetProjects(userId!),
     enabled:!!userId,//only run query if userId exists
     //staleTime:5*60*1000,// data considered fresh for 5 min
   })
+  const [rawTimeEntries,_]= GettingTimeEntries();
+  
+  const updateProjects = projects.map((p)=>{
+    const projectTimeEntry = rawTimeEntries.filter((entry)=>entry.projectId===p.ProjectId);
+    const totalTime = handleTotalTime(projectTimeEntry);
+    return {...p,time_spent:`${totalTime[0]}.${totalTime[1]}h`}
+  });
+
+
   const handleClickOpen = () => {
     setOpen(true);
   };
 
   //handles the refresh after creating a project
   //check it again
-  const queryClient = useQueryClient();
+  
   const handleCreateSuccess=()=>{
     if(Successfullyloaded){
-      queryClient.invalidateQueries(['projects',userId]);
+      queryClient.invalidateQueries(['projects']);
     }
     
   }
@@ -93,7 +104,7 @@ const Project: React.FC = () => {
           <Spinner />
         ) : (
           <>
-            {projects.map((p) => (
+            {updateProjects.map((p) => (
               <Card sx={{ p: 2, mb: 1, boxShadow: 3 }}>
                 <Box
                   sx={{
@@ -118,7 +129,7 @@ const Project: React.FC = () => {
                     <Typography>{p.description}</Typography>
                   </Box>
                   <Box sx={{ textAlign: "right" }}>
-                    <Typography variant="h6">{p.time_spent}h</Typography>
+                    <Typography variant="h6">{p.time_spent}</Typography>
                   </Box>
                 </Box>
               </Card>

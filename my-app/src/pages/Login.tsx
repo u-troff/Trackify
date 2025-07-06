@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Formik,Form,Field,ErrorMessage,useFormikContext } from "formik";
 import * as Yup from 'yup'
-import { TextField,Button,Box,Typography ,Link} from "@mui/material";
+import { TextField,Button,Box,Typography ,Link,InputLabel,styled} from "@mui/material";
 import "../css/Login.css"
-
+import Logo from  "../assets/Logo.png"
 import {signInWithEmailAndPassword,sendPasswordResetEmail} from 'firebase/auth'
 import { auth } from "../services/firebase";
 import { useNavigate,Navigate } from "react-router-dom";
@@ -104,102 +104,138 @@ const Login: React.FC=()=>{
     }
     }
 
-    if(isLoggingIn||loading){
-        return(<>
-        <Spinner/>
-        </>);
-    }
-
+    const LogoImage = styled('img')({
+        width:150,
+        height:'auto',
+        maxWidth:'100%',
+        borderRadius:10,
+    })
 
     
 
-    return(<>
-        <NavBar/>
-    
-        <Box sx={{
-            maxWidth: 400,
-            width: '100%',
-            boxShadow: 3,
-            p: 3,
-            border: '1px solid #ccc',
-            borderRadius: 2,
-            backgroundColor: 'white',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent:'center',
-            mx:'auto',
+    return (
+      <>
+        <Box sx={{ backgroundColor: "#2f2f2f" ,minHeight:'100vh'}}>
+          <NavBar />
+          {isLoggingIn || loading ? (
+            <Spinner />
+          ) : (
+            <Box
+              sx={{
+                minHeight: "100vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                p: 3,
+              }}
+            >
+              <Box
+                sx={{
+                  maxWidth: 400,
+                  width: "100%",
+                  boxShadow: 3,
+                  p: 4,
+                  border: "1px solid #ccc",
+                  borderRadius: 2,
+                  backgroundColor: "#d9d9d9",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mx: "auto",
+                  height: 600,
+                  gap: 2,
+                }}
+              >
+                <LogoImage src={Logo} alt="Tu Track" />
 
-        }}>
+                <Typography
+                  sx={{
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}
+                  gutterBottom
+                  variant="h5"
+                  component="h1"
+                >
+                  Login
+                </Typography>
+                <Formik
+                  initialValues={instialValues}
+                  onSubmit={handleSubmit}
+                  validationSchema={validationSchema}
+                >
+                  {({ isSubmitting }) => (
+                    <Form>
+                      <InputLabel id="email">Email</InputLabel>
+                      <Box mb={2} sx={{ textAlign: "center" }}>
+                        <Field
+                          as={TextField}
+                          name="email"
+                          placeholder="Email"
+                          variant="outlined"
+                          fullwidth="true"
+                          helperText={<ErrorMessage name="email" />}
+                          error={Boolean(<ErrorMessage name="email" />)}
+                        />
+                      </Box>
+                      <Box
+                        mb={2}
+                        sx={{
+                          textAlign: "center",
+                        }}
+                      >
+                        <InputLabel id="email" sx={{ textAlign: "left" }}>
+                          Password
+                        </InputLabel>
+                        <Field
+                          as={TextField} // cannot use a normal input here as the Textfield component in MUI has extra features which couple with ErrorMessage
+                          name="password"
+                          type='password'
+                          placeholder="Password"
+                          variant="outlined"
+                          fullwidth="true"
+                          helperText={<ErrorMessage name="password" />}
+                          error={Boolean(<ErrorMessage name="password" 
+                          />)}
+                        />
+                        <Box sx={{ mt: 2 }}>
+                          {loginError && (
+                            <Typography color="error">{loginError}</Typography>
+                          )}
+                          <ForgotPasswordLink />
+                        </Box>
+                      </Box>
 
-        
-            <Typography sx={{
-                textAlign: "center",
-            }} gutterBottom variant="h5" component="h1">
-                Login
-            </Typography>
-            <Formik initialValues={instialValues} onSubmit={handleSubmit}
-            validationSchema={validationSchema}> 
-                {
-                    ({isSubmitting})=>(
-                        <Form>
-                            <Box mb={2} sx={{textAlign: "center",}}>
-                                <Field as={TextField}
-                                 name="email" placeholder="Email"
-                                 variant="outlined"
-                                 fullwidth = "true"
-                                 helperText={<ErrorMessage name="email"/>}
-                                 error = {Boolean(<ErrorMessage name="email"/>)}
-                                 />
-                                 
-                            </Box>
-                            <Box mb={2} sx={{
-                                textAlign: "center",
-                            }}>
-                                <Field as={TextField}// cannot use a normal input here as the Textfield component in MUI has extra features which couple with ErrorMessage
-                                 name="password" placeholder="Password"
-                                 variant="outlined"
-                                 fullwidth = "true"
-                                 helperText={<ErrorMessage name="password"/>}
-                                 error = {Boolean(<ErrorMessage name="password"/>)}
-                                 
-                                 />
-                                <Box >
-                                    {loginError&&<Typography color="error">
-                                        {loginError}</Typography>}
-                                    <ForgotPasswordLink/>
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          sx={{
+                            alignContent: "center",
+                            textAlign: "center",
+                            fontSize: 20,
+                          }}
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? "Submitting..." : "Login"}
+                        </Button>
+                      </Box>
+                    </Form>
+                  )}
+                </Formik>
 
-                                </Box>
-                            </Box>
-                            
-                            <Box display='flex' justifyContent="center" alignItems="center">
-                            <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            sx={{
-                                alignContent:"center",
-                                textAlign:"center"
-                            }}
-                            disabled={isSubmitting}>
-                                {
-                                    isSubmitting?'Submitting...':'Login'
-                                }
-                            </Button>
-                            </Box>
-                            
-
-
-                        </Form>
-                    )
-                }
-
-            </Formik>
-
-        <ToastContainer/>
+                <ToastContainer />
+              </Box>
+            </Box>
+          )}
         </Box>
-    
-    </>
+      </>
     );
 }
 
