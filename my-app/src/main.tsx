@@ -13,7 +13,6 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider theme={theme}>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
-          <CssBaseline/>
           <App />
         </QueryClientProvider>
       </BrowserRouter>

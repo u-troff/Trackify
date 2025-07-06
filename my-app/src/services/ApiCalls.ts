@@ -38,7 +38,8 @@ const getUsers = async ()=>{
     try{
         
         const response = await api.get('users');
-        console.log("Data:",response.data, "Status",response.status);
+        //console.log("Data:",response.data, "Status",response.status);
+        return response.data
     }catch (error){
         console.log("Error:",error.message,error.code,"URL",api.getUri());
     }
@@ -60,7 +61,8 @@ const GetSpecificUsers = async (userId:string)=>{
     const path:string = `users/${userId}`
     try{
         const response = await api.get(path);
-        //console.log("User",response.data,"Status",response.status);
+        console.log("User",response.data,"Status",response.status);
+        return response.data;
     }catch (error){
         console.log(error);
     }
