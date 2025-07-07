@@ -11,24 +11,30 @@ import { signOut } from "firebase/auth";
 import { Spinner } from "../Spinner/Spinner";
 import { useNavigate } from "react-router-dom";
 import type {NavigateFunction} from 'react-router-dom'
+import ContrastIcon from '@mui/icons-material/Contrast';
 
-const drawerWidth: number = 200;
-interface Props{
-    page?: string;
-    icon?: string;
-    id?:number;
-    route?:string;
-    style?:boolean
+
+const drawerWidth: number = 300;
+interface Props {
+  page?: string;
+  icon?: string;
+  id?: number;
+  route?: string;
+  style?: boolean;
+  menu?: boolean;
+  setMenu?: React.Dispatch<React.SetStateAction<boolean>>;
 }
+//dynamic sidebar
 
 const Sidebar:React.FC<Props>=(page)=>{
+
     let pages = [
       {id:1,label: "Dashboard",icon: <HomeIcon/>, route:"/dashboard" ,style:false},
       {id:2,label:"Time Tracking",icon: <AvTimerIcon/>, route: "/time-tracking",style:false}
       , {id:3,label:"Reports", icon: <ShowChartIcon/>,route:"/reports",style:false}
     ];
     //set to open sidebar with a click of a button
-    const [isOpen,setIsOpen] = useState<boolean>(true);
+    
     
 
     const navigate:NavigateFunction = useNavigate();
@@ -48,14 +54,18 @@ const Sidebar:React.FC<Props>=(page)=>{
   }
   }
   for (let i = 0; i < pages.length; i++) {
-    if(pages[i].id==page.id){
+    if(pages[i].route==page.page){
       pages[i].style=true;
     }
   }
 
   const handleNav=(route:string)=>{
     navigate(route);
+    page.setMenu(false);
 
+  }
+  const switchTheme=()=>{
+    
   }
 
   if(isLoggingOut){
@@ -66,11 +76,11 @@ const Sidebar:React.FC<Props>=(page)=>{
     );
   }
 
-
     return(<>
 <Drawer
-variant="permanent"
-
+variant="temporary"
+open={page.menu}
+onClose={()=>page.setMenu(false)}
 sx={{
   width: drawerWidth,
   flexShrink: 0,
@@ -116,7 +126,15 @@ sx={{
     
   ))}
 </List>
-<Box >{
+<Box sx={{mt:'auto'}}>
+    <ListItem disablePadding>
+      <ListItemButton onClick={switchTheme}>
+        <ListItemIcon><ContrastIcon/></ListItemIcon>
+        <ListItemText primary="theme"/>
+      </ListItemButton>
+    </ListItem>
+
+{
     <ListItem disablePadding>
       <ListItemButton onClick={handleLogout}>
         <ListItemIcon><LogoutIcon/></ListItemIcon>
