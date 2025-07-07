@@ -1,4 +1,4 @@
-import React, { useEffect, useState ,useMemo} from "react"
+import React, { useEffect, useState, useMemo } from "react";
 import {
   MRT_GlobalFilterTextField,
   MRT_TableBodyCellValue,
@@ -24,34 +24,41 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Skeleton
+  Skeleton,
 } from "@mui/material";
 
 import Sidebar from "./SideBar";
-import { GetProjects, GetTimeEntry, PostTimeEntry, type TimeSchema ,GetSpecificTimeEntry,UpdateTimeEntry} from "../services/ApiCalls";
+import {
+  GetProjects,
+  GetTimeEntry,
+  PostTimeEntry,
+  type TimeSchema,
+  GetSpecificTimeEntry,
+  UpdateTimeEntry,
+} from "../services/ApiCalls";
 import { auth } from "../services/firebase";
-import NewManualTimeEntry from "../Components/NewManualTimeEntry"
+import NewManualTimeEntry from "../Components/NewManualTimeEntry";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useQuery,useQueryClient,useMutation } from "@tanstack/react-query";
-import type {Props} from '../Components/Projects'
-import BasicDatePicker from "../Components/DatePicker"
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import type { Props } from "../Components/Projects";
+import BasicDatePicker from "../Components/DatePicker";
 import Project from "../Components/Projects";
 import { Spinner } from "../Spinner/Spinner";
-import dayjs,{Dayjs} from  'dayjs'
-import { useNavigate ,useLocation} from "react-router";
-import queryString from "query-string"
+import dayjs, { Dayjs } from "dayjs";
+import { useNavigate, useLocation } from "react-router";
+import queryString from "query-string";
 import { ResponsiveDialog } from "../Components/handleEditAndDelete";
-import EditEntry from "../Components/EditTime"
+import EditEntry from "../Components/EditTime";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ContinualTimeEntry from "../Components/ContinualTimeEntry";
-export interface TimeEntry{
-  id:string;
+export interface TimeEntry {
+  id: string;
   date: string;
   project: string;
   notes: string;
-  duration:string;
-  action:string;
+  duration: string;
+  action: string;
 }
 
 export interface Patch {
@@ -62,57 +69,53 @@ export interface Patch {
   timeId: string;
 }
 
-
-
-interface TimeTrackProps{
-  path:string;
+interface TimeTrackProps {
+  path: string;
 }
 
-export function TotalHours(timeEntry:TimeEntry[]){
+export function TotalHours(timeEntry: TimeEntry[]) {
   let Total = 0;
-  const parseTimeToMinutes = (timeStr:string)=>{
-    const match = timeStr.match(/(\d+)h\s*(\d+)m/)
+  const parseTimeToMinutes = (timeStr: string) => {
+    const match = timeStr.match(/(\d+)h\s*(\d+)m/);
     if (!match) return 0;
 
-    const hours = parseInt(match[1],10);
-    const minutes = parseInt(match[2],10);
-    return hours*60+minutes;
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    return hours * 60 + minutes;
   };
 
-  const formatMinutesToTime = (totalMinutes:number)=>{
-    const hours = Math.floor(totalMinutes/60);
-    const minutes = totalMinutes%60;
+  const formatMinutesToTime = (totalMinutes: number) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
     return `${hours}h ${minutes}m`;
-  }
+  };
 
   for (let i = 0; i < timeEntry.length; i++) {
     const element = timeEntry[i].duration;
-    Total  = Total+ parseTimeToMinutes(element);
+    Total = Total + parseTimeToMinutes(element);
   }
   return formatMinutesToTime(Total);
 }
 
-
-const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
+const TimeTracking: React.FC<TimeTrackProps> = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
 
-
   //useStates
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [DeleteTimeEntry,setDeleteTimeEntries] = useState<TimeEntry>({});
+  const [DeleteTimeEntry, setDeleteTimeEntries] = useState<TimeEntry>({});
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [openDeleteDialog,setOpenDeleteDialog] = useState<boolean>(false);
-  const [openEditDialog,setOpenEditDialog] = useState<boolean>(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(()=>{
+  const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
+  const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(() => {
     const params = queryString.parse(location.search);
-    return (params.projectId as string)||"1";
+    return (params.projectId as string) || "1";
   });
   const [selected, setSelected] = useState<Dayjs | null>(dayjs());
   const [rowSelection, setRowSelection] = useState({});
-  const [currentEdits,setCurrentEdits] = useState<TimeEntry>();
-  const [continualTime, setContinualTime]= useState<boolean>(false);
+  const [currentEdits, setCurrentEdits] = useState<TimeEntry>();
+  const [continualTime, setContinualTime] = useState<boolean>(false);
   const userId = auth.currentUser?.uid;
 
   const {
@@ -125,53 +128,56 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     enabled: !!userId,
   });
 
-  const { data: rawTimeEntries = [], isLoading: isTimeEntriesLoading } = useQuery({
-    queryKey: ["time-entries/user/", userId],
-    queryFn: () => GetTimeEntry(userId!),
-  });
+  const { data: rawTimeEntries = [], isLoading: isTimeEntriesLoading } =
+    useQuery({
+      queryKey: ["time-entries/user/", userId],
+      queryFn: () => GetTimeEntry(userId!),
+    });
 
-
-  const { data: SpecificTimeEntries = [],isLoading:isSpecificTimeEntriesLoading } = useQuery({
+  const {
+    data: SpecificTimeEntries = [],
+    isLoading: isSpecificTimeEntriesLoading,
+  } = useQuery({
     queryKey: ["time-entries/project/", selectedProjectId],
     queryFn: () => GetSpecificTimeEntry(selectedProjectId!),
   });
 
   /*This is the Query calls to filter on the table and simplified it */
   const timeEntries: TimeEntry[] = useMemo(() => {
-    if(selectedProjectId=="1"){
-    const projectMap = new Map(projecs.map((p) => [p.ProjectId, p.name]));
-    return rawTimeEntries.map((entry: any) => {
-      const formattedDate = new Date(entry.date).toISOString().split("T")[0];
-      const projectName = projectMap.get(entry.projectId) || entry.projectId;
-      const duration = `${entry.hours}h ${entry.minutes}m`;
+    if (selectedProjectId == "1") {
+      const projectMap = new Map(projecs.map((p) => [p.ProjectId, p.name]));
+      return rawTimeEntries.map((entry: any) => {
+        const formattedDate = new Date(entry.date).toISOString().split("T")[0];
+        const projectName = projectMap.get(entry.projectId) || entry.projectId;
+        const duration = `${entry.hours}h ${entry.minutes}m`;
 
-      return {
-        id: entry.id, // Use the id from the raw data
-        date: formattedDate,
-        project: projectName,
-        notes: entry.notes,
-        duration: duration,
-        action: "",
-      };
-    });
-  }else{
-    const projectMap = new Map(projecs.map((p) => [p.ProjectId, p.name]));
-    return SpecificTimeEntries.map((entry: any) => {
-      const formattedDate = new Date(entry.date).toISOString().split("T")[0];
-      const projectName = projectMap.get(entry.projectId) || entry.projectId;
-      const duration = `${entry.hours}h ${entry.minutes}m`;
+        return {
+          id: entry.id, // Use the id from the raw data
+          date: formattedDate,
+          project: projectName,
+          notes: entry.notes,
+          duration: duration,
+          action: "",
+        };
+      });
+    } else {
+      const projectMap = new Map(projecs.map((p) => [p.ProjectId, p.name]));
+      return SpecificTimeEntries.map((entry: any) => {
+        const formattedDate = new Date(entry.date).toISOString().split("T")[0];
+        const projectName = projectMap.get(entry.projectId) || entry.projectId;
+        const duration = `${entry.hours}h ${entry.minutes}m`;
 
-      return {
-        id: entry.id, // Use the id from the raw data
-        date: formattedDate,
-        project: projectName,
-        notes: entry.notes,
-        duration: duration,
-        action: "",
-      };
-    });
-  }
-  }, [rawTimeEntries, projecs,SpecificTimeEntries]);
+        return {
+          id: entry.id, // Use the id from the raw data
+          date: formattedDate,
+          project: projectName,
+          notes: entry.notes,
+          duration: duration,
+          action: "",
+        };
+      });
+    }
+  }, [rawTimeEntries, projecs, SpecificTimeEntries]);
   //Getting the Total hours for a project
   const Total = TotalHours(timeEntries);
 
@@ -200,8 +206,8 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["time-entries",userId,selectedProjectId],
-        exact:false,
+        queryKey: ["time-entries", userId, selectedProjectId],
+        exact: false,
       });
       setOpenDialog(false);
       setContinualTime(false);
@@ -217,22 +223,23 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
 
   //Mutation to update time entries
   const timeMutations = useMutation({
-    mutationFn: (updatedTimeEntry:Patch)=>UpdateTimeEntry({
-      timeId: updatedTimeEntry.timeId,
-      project:updatedTimeEntry.project,
-      hours:updatedTimeEntry.hours,
-      minutes:updatedTimeEntry.minutes,
-      notes:updatedTimeEntry.notes,
-    }),
-    onSuccess:()=>{
+    mutationFn: (updatedTimeEntry: Patch) =>
+      UpdateTimeEntry({
+        timeId: updatedTimeEntry.timeId,
+        project: updatedTimeEntry.project,
+        hours: updatedTimeEntry.hours,
+        minutes: updatedTimeEntry.minutes,
+        notes: updatedTimeEntry.notes,
+      }),
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["time-entries", userId, selectedProjectId],
         exact: false,
       });
       setOpenEditDialog(false);
-    }
-  })
-  
+    },
+  });
+
   //Delete Entries
   const handleDelete = (timeEntry: TimeEntry) => {
     setOpenDeleteDialog(true);
@@ -273,7 +280,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
             maxWidth: 100,
           }}
         >
-          <IconButton onClick={()=>OpenEditForm(row.original)}>
+          <IconButton onClick={() => OpenEditForm(row.original)}>
             <EditIcon />
           </IconButton>
           <IconButton onClick={() => handleDelete(row.original)}>
@@ -287,7 +294,7 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
   const table = useMaterialReactTable({
     columns,
     data: timeEntries,
-    getRowId:(row)=>row.id,//use id from each entry
+    getRowId: (row) => row.id, //use id from each entry
     enableColumnFilters: true,
     onRowSelectionChange: setRowSelection,
     state: { rowSelection },
@@ -298,12 +305,11 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     },
     //customize the MRT components
     muiPaginationProps: {
-      rowsPerPageOptions: [5, 10, 15,20],
+      rowsPerPageOptions: [5, 10, 15, 20],
       variant: "outlined",
     },
     paginationDisplayMode: "pages",
   });
-
 
   //add time tracking
   const handleFormSubmit = (values: {
@@ -315,17 +321,16 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     mutation.mutate(values);
   };
 
-  const OpenEditForm=(row:TimeEntry)=>{
+  const OpenEditForm = (row: TimeEntry) => {
     setOpenEditDialog(true);
     setCurrentEdits(row);
-  }
+  };
   //console.log(currentEdits);
 
-  const handleFormEdit = (values:Patch)=>{
+  const handleFormEdit = (values: Patch) => {
     timeMutations.mutate(values);
-    console.log("editing",values);
-    
-  }
+    console.log("editing", values);
+  };
 
   //for continualTimeEntries
   const handleContinualTime = (value: {
@@ -333,13 +338,13 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     notes: string;
     hours: number;
     minutes: number;
-  })=>{
+  }) => {
     console.log(value);
     mutation.mutate(value);
-  }
+  };
 
   const handleChange = (event: any) => {
-    const newProjectId:string = event.target.value;
+    const newProjectId: string = event.target.value;
     setSelectedProjectId(event.target.value);
     navigate(`?projectId=${newProjectId}`);
     setShowFilters(newProjectId !== "1");
@@ -358,7 +363,6 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
     }
   }, [searchedDate, showFilters]);
 
-  
   return (
     <>
       <Box sx={{ mt: 8 }}>
@@ -367,9 +371,9 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
             <Typography variant="h4" sx={{ fontWeight: "bold" }}>
               Time Entry
             </Typography>
-            <Box >
-              <IconButton onClick={()=>setContinualTime(true)}>
-                  <PlayArrowIcon sx={{fontSize:40, color:'black'}}/>
+            <Box>
+              <IconButton onClick={() => setContinualTime(true)}>
+                <PlayArrowIcon sx={{ fontSize: 40, color: "black" }} />
               </IconButton>
               <Button
                 variant="contained"
@@ -548,14 +552,15 @@ const TimeTracking: React.FC<TimeTrackProps>=(props)=>{
           />
         </Dialog>
 
-        <Dialog open={continualTime} onClose={()=>setContinualTime(false)}>
-          <ContinualTimeEntry onCancel={()=>setContinualTime(false)}
-            onSubmit={handleContinualTime}/>
+        <Dialog open={continualTime} onClose={() => setContinualTime(false)}>
+          <ContinualTimeEntry
+            onCancel={() => setContinualTime(false)}
+            onSubmit={handleContinualTime}
+          />
         </Dialog>
       </Box>
     </>
   );
-}
-
+};
 
 export default TimeTracking;

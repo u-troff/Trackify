@@ -123,18 +123,25 @@ const handleLogoClick=()=>{
 
 const NavBarInMainPage: React.FC<Props> = (props) => {  
   const email = auth.currentUser?.email;
-  const {data:users}= useQuery({
+  const [name,setName] = useState<string>("User");
+  const {data:users,isSuccess:NameFound}= useQuery({
     queryKey:['users'],
     queryFn: ()=>getUsers(),
   });
 
 
-  const name = users.filter((user)=> {
-    const cleanEmail = user.email.replace(/(\+[^@]+)/,'');
-    return cleanEmail === email;
-
-  });
-  console.log(name[0].name);
+  useEffect(()=>{
+    if (NameFound) {
+      const name = users.filter((user) => {
+        const cleanEmail = user.email.replace(/(\+[^@]+)/, "");
+        return cleanEmail === email;
+      });
+      console.log(name[0].name);
+      setName(name[0].name);
+    }
+  },[NameFound])
+  
+  
   
   return (
     <Box display="flex">
@@ -157,9 +164,9 @@ const NavBarInMainPage: React.FC<Props> = (props) => {
             </Box>
             <Box sx={{display:'flex',alignItems:'center',gap:2}}>
               <Typography>
-                Welcome: {name[0].name}!!
+                Welcome: {name} !!
               </Typography>
-              <Avatar sx={{bgcolor: deepOrange[500]}}>{name[0].name[0]}
+              <Avatar sx={{bgcolor: deepOrange[500]}}>{name[0]}
               </Avatar>
             </Box>
          

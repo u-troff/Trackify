@@ -27,6 +27,7 @@ interface Props {
 //dynamic sidebar
 
 const Sidebar:React.FC<Props>=(page)=>{
+
     let pages = [
       {id:1,label: "Dashboard",icon: <HomeIcon/>, route:"/dashboard" ,style:false},
       {id:2,label:"Time Tracking",icon: <AvTimerIcon/>, route: "/time-tracking",style:false}
@@ -64,7 +65,7 @@ const Sidebar:React.FC<Props>=(page)=>{
 
   }
   const switchTheme=()=>{
-
+    
   }
 
   if(isLoggingOut){

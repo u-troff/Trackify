@@ -8,7 +8,6 @@ import { auth, db } from "../services/firebase";
 import { useNavigate } from "react-router";
 import { NavBar } from "../Redirect";
 import { Spinner } from "../Spinner/Spinner";
-import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { POST } from "../services/ApiCalls";
 import Logo from "../assets/Logo.png";
